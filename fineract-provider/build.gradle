@@ -133,7 +133,7 @@ sourceCompatibility = JavaVersion.VERSION_1_8
 /* define binary compatibility version */
 targetCompatibility = JavaVersion.VERSION_1_8
 
-project.ext.mysqlUser='root'
+project.ext.mysqlUser='admin'
 project.ext.mysqlPassword='mysql'
 
 group = 'org.apache.fineract'
