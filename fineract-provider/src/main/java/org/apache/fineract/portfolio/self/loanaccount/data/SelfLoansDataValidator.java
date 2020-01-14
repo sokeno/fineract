@@ -93,7 +93,7 @@ public class SelfLoansDataValidator {
 
         final String loanTypeParameterName = "loanType";
         final String loanTypeStr = this.fromApiJsonHelper.extractStringNamed(loanTypeParameterName, element);
-        baseDataValidator.reset().parameter(loanTypeParameterName).value(loanTypeStr).notNull().equals("individual");
+        baseDataValidator.reset().parameter(loanTypeParameterName).value(loanTypeStr).notNull().isOneOfTheseStringValues("individual");
 
         final String clientIdParameterName = "clientId";
         final String clientId = this.fromApiJsonHelper.extractStringNamed(clientIdParameterName, element);
@@ -105,7 +105,6 @@ public class SelfLoansDataValidator {
         retAttr.put("clientId", Long.parseLong(clientId));
         
         return retAttr;
-
 	}
 
 	public HashMap<String, Object> validateModifyLoanApplication(final String json) {
@@ -117,7 +116,7 @@ public class SelfLoansDataValidator {
         final String loanTypeParameterName = "loanType";
         if(this.fromApiJsonHelper.parameterExists(loanTypeParameterName, element)){
             final String loanTypeStr = this.fromApiJsonHelper.extractStringNamed(loanTypeParameterName, element);
-            baseDataValidator.reset().parameter(loanTypeParameterName).value(loanTypeStr).notNull().equals("individual");
+            baseDataValidator.reset().parameter(loanTypeParameterName).value(loanTypeStr).notNull().isOneOfTheseStringValues("individual");
         }
 
         final String clientIdParameterName = "clientId";
@@ -151,6 +150,4 @@ public class SelfLoansDataValidator {
 			unsupportedParams.add("template");
 		}
 	}
-
-
 }
