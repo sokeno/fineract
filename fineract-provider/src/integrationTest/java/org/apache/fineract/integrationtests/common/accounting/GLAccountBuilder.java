@@ -19,10 +19,9 @@
 package org.apache.fineract.integrationtests.common.accounting;
 
 import com.google.gson.Gson;
-import org.apache.fineract.integrationtests.common.Utils;
-
 import java.util.Calendar;
 import java.util.HashMap;
+import org.apache.fineract.integrationtests.common.Utils;
 
 public class GLAccountBuilder {
 
@@ -61,7 +60,7 @@ public class GLAccountBuilder {
         accountType = ASSET_ACCOUNT;
         glCode = Utils.randomStringGenerator("ASSET_", 2);
         // Add unique timestamp to avoid random collisions
-        glCode += Calendar.getInstance().getTimeInMillis() + ""; 
+        glCode += Calendar.getInstance().getTimeInMillis() + "";
         return this;
     }
 

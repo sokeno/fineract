@@ -18,6 +18,19 @@
  */
 package org.apache.fineract.portfolio.savings.service;
 
+import static org.apache.fineract.portfolio.savings.DepositsApiConstants.isCalendarInheritedParamName;
+import static org.apache.fineract.portfolio.savings.DepositsApiConstants.recurringFrequencyParamName;
+import static org.apache.fineract.portfolio.savings.DepositsApiConstants.recurringFrequencyTypeParamName;
+import static org.apache.fineract.portfolio.savings.DepositsApiConstants.transferInterestToSavingsParamName;
+
+import java.math.MathContext;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import javax.persistence.PersistenceException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.fineract.infrastructure.accountnumberformat.domain.AccountNumberFormat;
@@ -41,7 +54,11 @@ import org.apache.fineract.portfolio.account.domain.AccountAssociationType;
 import org.apache.fineract.portfolio.account.domain.AccountAssociations;
 import org.apache.fineract.portfolio.account.domain.AccountAssociationsRepository;
 import org.apache.fineract.portfolio.calendar.domain.Calendar;
-import org.apache.fineract.portfolio.calendar.domain.*;
+import org.apache.fineract.portfolio.calendar.domain.CalendarEntityType;
+import org.apache.fineract.portfolio.calendar.domain.CalendarFrequencyType;
+import org.apache.fineract.portfolio.calendar.domain.CalendarInstance;
+import org.apache.fineract.portfolio.calendar.domain.CalendarInstanceRepository;
+import org.apache.fineract.portfolio.calendar.domain.CalendarType;
 import org.apache.fineract.portfolio.calendar.service.CalendarUtils;
 import org.apache.fineract.portfolio.client.domain.AccountNumberGenerator;
 import org.apache.fineract.portfolio.client.domain.Client;
@@ -63,7 +80,17 @@ import org.apache.fineract.portfolio.savings.DepositAccountType;
 import org.apache.fineract.portfolio.savings.DepositsApiConstants;
 import org.apache.fineract.portfolio.savings.SavingsApiConstants;
 import org.apache.fineract.portfolio.savings.data.DepositAccountDataValidator;
-import org.apache.fineract.portfolio.savings.domain.*;
+import org.apache.fineract.portfolio.savings.domain.DepositAccountAssembler;
+import org.apache.fineract.portfolio.savings.domain.FixedDepositAccount;
+import org.apache.fineract.portfolio.savings.domain.FixedDepositAccountRepository;
+import org.apache.fineract.portfolio.savings.domain.RecurringDepositAccount;
+import org.apache.fineract.portfolio.savings.domain.RecurringDepositAccountRepository;
+import org.apache.fineract.portfolio.savings.domain.SavingsAccount;
+import org.apache.fineract.portfolio.savings.domain.SavingsAccountCharge;
+import org.apache.fineract.portfolio.savings.domain.SavingsAccountChargeAssembler;
+import org.apache.fineract.portfolio.savings.domain.SavingsAccountRepositoryWrapper;
+import org.apache.fineract.portfolio.savings.domain.SavingsProduct;
+import org.apache.fineract.portfolio.savings.domain.SavingsProductRepository;
 import org.apache.fineract.portfolio.savings.exception.SavingsProductNotFoundException;
 import org.apache.fineract.useradministration.domain.AppUser;
 import org.joda.time.LocalDate;
@@ -73,12 +100,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import javax.persistence.PersistenceException;
-import java.math.MathContext;
-import java.util.*;
-
-import static org.apache.fineract.portfolio.savings.DepositsApiConstants.*;
 
 @Service
 public class DepositApplicationProcessWritePlatformServiceJpaRepositoryImpl implements DepositApplicationProcessWritePlatformService {
@@ -212,7 +233,7 @@ public class DepositApplicationProcessWritePlatformServiceJpaRepositoryImpl impl
 
             final Long savingsId = account.getId();
             this.businessEventNotifierService.notifyBusinessEventWasExecuted( BUSINESS_EVENTS.FIXED_DEPOSIT_ACCOUNT_CREATE,
-            		constructEntityMap(BUSINESS_ENTITY.DEPOSIT_ACCOUNT, account));
+                    constructEntityMap(BUSINESS_ENTITY.DEPOSIT_ACCOUNT, account));
 
             this.businessEventNotifierService.notifyBusinessEventWasExecuted( BUSINESS_EVENTS.FIXED_DEPOSIT_ACCOUNT_CREATE,
                     constructEntityMap(BUSINESS_ENTITY.DEPOSIT_ACCOUNT, account));
@@ -229,8 +250,8 @@ public class DepositApplicationProcessWritePlatformServiceJpaRepositoryImpl impl
             handleDataIntegrityIssues(command, dve.getMostSpecificCause(), dve);
             return CommandProcessingResult.empty();
         }catch (final PersistenceException dve) {
-        	Throwable throwable = ExceptionUtils.getRootCause(dve.getCause()) ;
-        	handleDataIntegrityIssues(command, throwable, dve);
+            Throwable throwable = ExceptionUtils.getRootCause(dve.getCause()) ;
+            handleDataIntegrityIssues(command, throwable, dve);
             return CommandProcessingResult.empty();
         }
     }
@@ -275,7 +296,7 @@ public class DepositApplicationProcessWritePlatformServiceJpaRepositoryImpl impl
             account.validateApplicableInterestRate();
             this.savingAccountRepository.save(account);
             this.businessEventNotifierService.notifyBusinessEventWasExecuted( BUSINESS_EVENTS.RECURRING_DEPOSIT_ACCOUNT_CREATE,
-            		constructEntityMap(BUSINESS_ENTITY.DEPOSIT_ACCOUNT, account));
+                    constructEntityMap(BUSINESS_ENTITY.DEPOSIT_ACCOUNT, account));
 
             this.businessEventNotifierService.notifyBusinessEventWasExecuted( BUSINESS_EVENTS.RECURRING_DEPOSIT_ACCOUNT_CREATE,
                     constructEntityMap(BUSINESS_ENTITY.DEPOSIT_ACCOUNT, account));
@@ -292,8 +313,8 @@ public class DepositApplicationProcessWritePlatformServiceJpaRepositoryImpl impl
             handleDataIntegrityIssues(command, dve.getMostSpecificCause(), dve);
             return CommandProcessingResult.empty();
         }catch (final PersistenceException dve) {
-        	Throwable throwable = ExceptionUtils.getRootCause(dve.getCause()) ;
-        	handleDataIntegrityIssues(command, throwable, dve);
+            Throwable throwable = ExceptionUtils.getRootCause(dve.getCause()) ;
+            handleDataIntegrityIssues(command, throwable, dve);
             return CommandProcessingResult.empty();
         }
     }
@@ -328,7 +349,7 @@ public class DepositApplicationProcessWritePlatformServiceJpaRepositoryImpl impl
                 CalendarInstance parentCalendarInstance = this.calendarInstanceRepository.findByEntityIdAndEntityTypeIdAndCalendarTypeId(
                         groupId, entityType, CalendarType.COLLECTION.getValue());
                 if(parentCalendarInstance == null){
-                	final String defaultUserMessage = "Meeting frequency is not attached to the Group/Center to which the client belongs to.";
+                    final String defaultUserMessage = "Meeting frequency is not attached to the Group/Center to which the client belongs to.";
                     throw new GeneralPlatformDomainRuleException(
                             "error.msg.meeting.frequency.not.attached.to.group.to.which.client.belongs.to",
                             defaultUserMessage, account.clientId());
@@ -344,7 +365,7 @@ public class DepositApplicationProcessWritePlatformServiceJpaRepositoryImpl impl
 
             final Integer repeatsOnDay = calendarStartDate.getDayOfWeek();
             final String title = "recurring_savings_" + account.getId();
-            
+
             final Calendar calendar = Calendar.createRepeatingCalendar(title, calendarStartDate, CalendarType.COLLECTION.getValue(),
                     CalendarFrequencyType.from(periodFrequencyType), frequency, repeatsOnDay, null);
             calendarInstance = CalendarInstance.from(calendar, account.getId(), CalendarEntityType.SAVINGS.getValue());
@@ -442,9 +463,9 @@ public class DepositApplicationProcessWritePlatformServiceJpaRepositoryImpl impl
             handleDataIntegrityIssues(command, dve.getMostSpecificCause(), dve);
             return new CommandProcessingResult((long) -1);
         }catch (final PersistenceException dve) {
-        	Throwable throwable = ExceptionUtils.getRootCause(dve.getCause()) ;
-        	handleDataIntegrityIssues(command, throwable, dve);
-        	return new CommandProcessingResult((long) -1);
+            Throwable throwable = ExceptionUtils.getRootCause(dve.getCause()) ;
+            handleDataIntegrityIssues(command, throwable, dve);
+            return new CommandProcessingResult((long) -1);
         }
     }
 
@@ -513,9 +534,9 @@ public class DepositApplicationProcessWritePlatformServiceJpaRepositoryImpl impl
             handleDataIntegrityIssues(command, dve.getMostSpecificCause(), dve);
             return new CommandProcessingResult(Long.valueOf(-1));
         }catch (final PersistenceException dve) {
-        	Throwable throwable = ExceptionUtils.getRootCause(dve.getCause()) ;
-        	handleDataIntegrityIssues(command, throwable, dve);
-        	return new CommandProcessingResult(Long.valueOf(-1));
+            Throwable throwable = ExceptionUtils.getRootCause(dve.getCause()) ;
+            handleDataIntegrityIssues(command, throwable, dve);
+            return new CommandProcessingResult(Long.valueOf(-1));
         }
     }
 

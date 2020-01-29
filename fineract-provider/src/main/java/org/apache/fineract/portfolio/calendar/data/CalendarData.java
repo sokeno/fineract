@@ -18,6 +18,10 @@
  */
 package org.apache.fineract.portfolio.calendar.data;
 
+import java.io.Serializable;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
 import org.apache.fineract.infrastructure.core.data.EnumOptionData;
 import org.apache.fineract.portfolio.calendar.domain.CalendarFrequencyType;
 import org.apache.fineract.portfolio.calendar.domain.CalendarRemindBy;
@@ -28,11 +32,6 @@ import org.apache.fineract.portfolio.calendar.service.CalendarUtils;
 import org.apache.fineract.portfolio.common.domain.NthDayType;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalTime;
-
-import java.io.Serializable;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
 
 /**
  * Immutable data object representing a Calendar.
@@ -326,7 +325,7 @@ public class CalendarData implements Serializable {
             final LocalDate lastUpdatedDate, final Long createdByUserId, final String createdByUsername, final Long lastUpdatedByUserId,
             final String lastUpdatedByUsername, final Integer repeatsOnDayOfMonth, final List<EnumOptionData> entityTypeOptions,
             final List<EnumOptionData> calendarTypeOptions, final List<EnumOptionData> remindByOptions,
-            final List<EnumOptionData> repeatsOptions, final List<EnumOptionData> repeatsOnDayOptions,final LocalTime meetingTime, 
+            final List<EnumOptionData> repeatsOptions, final List<EnumOptionData> repeatsOnDayOptions,final LocalTime meetingTime,
             final List<EnumOptionData> frequencyNthDayTypeOptions) {
         this.id = id;
         this.calendarInstanceId = calendarInstanceId;
@@ -478,20 +477,20 @@ public class CalendarData implements Serializable {
                 compareDate, isSkipMeetingOnFirstDay, numberOfDays); }
         return false;
     }
-    
+
     public Integer interval(){
         return this.interval;
     }
-    
+
     public EnumOptionData frequencyType(){
         return this.frequency;
     }
-	public EnumOptionData getRepeatsOnDay() {
-		return this.repeatsOnDay;
-	}
-	public EnumOptionData getRepeatsOnNthDayOfMonth() {
-		return this.repeatsOnNthDayOfMonth;
-	}
+    public EnumOptionData getRepeatsOnDay() {
+        return this.repeatsOnDay;
+    }
+    public EnumOptionData getRepeatsOnNthDayOfMonth() {
+        return this.repeatsOnNthDayOfMonth;
+    }
 
     @Override
     public boolean equals(Object o) {

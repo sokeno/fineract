@@ -20,6 +20,31 @@ package org.apache.fineract.portfolio.loanproduct.domain;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Embedded;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+import javax.persistence.UniqueConstraint;
 import org.apache.commons.lang.StringUtils;
 import org.apache.fineract.accounting.common.AccountingRuleType;
 import org.apache.fineract.infrastructure.core.api.JsonCommand;
@@ -38,17 +63,13 @@ import org.apache.fineract.portfolio.loanaccount.loanschedule.domain.AprCalculat
 import org.apache.fineract.portfolio.loanproduct.LoanProductConstants;
 import org.joda.time.LocalDate;
 
-import javax.persistence.*;
-import java.math.BigDecimal;
-import java.util.*;
-
 /**
  * Loan products allow for categorisation of an organisations loans into
  * something meaningful to them.
- * 
+ *
  * They provide a means of simplifying creation/maintenance of loans. They can
  * also allow for product comparison to take place when reporting.
- * 
+ *
  * They allow for constraints to be added at product level.
  */
 @Entity
@@ -151,14 +172,14 @@ public class LoanProduct extends AbstractPersistableCustom<Long> {
 
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "loanProduct", optional = true, orphanRemoval = true, fetch=FetchType.EAGER)
     private LoanProductVariableInstallmentConfig variableInstallmentConfig;
-    
+
     @Column(name = "sync_expected_with_disbursement_date")
     private boolean syncExpectedWithDisbursementDate;
 
 
     @Column(name = "can_use_for_topup", nullable = false)
     private boolean canUseForTopup = false;
-    
+
     @Column(name = "is_equal_amortization", nullable = false)
     private boolean isEqualAmortization = false;
 
@@ -307,12 +328,12 @@ public class LoanProduct extends AbstractPersistableCustom<Long> {
                 .integerValueOfParameterNamed(LoanProductConstants.installmentAmountInMultiplesOfParamName);
 
         final boolean syncExpectedWithDisbursementDate = command.booleanPrimitiveValueOfParameterNamed("syncExpectedWithDisbursementDate");
-        
-        
-		final boolean canUseForTopup = command.parameterExists(LoanProductConstants.canUseForTopup)
-				? command.booleanPrimitiveValueOfParameterNamed(LoanProductConstants.canUseForTopup)
-				: false;
-				
+
+
+        final boolean canUseForTopup = command.parameterExists(LoanProductConstants.canUseForTopup)
+                ? command.booleanPrimitiveValueOfParameterNamed(LoanProductConstants.canUseForTopup)
+                : false;
+
         final boolean isEqualAmortization = command.parameterExists(LoanProductConstants.isEqualAmortizationParam) ? command
                 .booleanPrimitiveValueOfParameterNamed(LoanProductConstants.isEqualAmortizationParam) : false;
 
@@ -633,8 +654,8 @@ public class LoanProduct extends AbstractPersistableCustom<Long> {
         this.accountMovesOutOfNPAOnlyOnArrearsCompletion = accountMovesOutOfNPAOnlyOnArrearsCompletion;
         this.canDefineInstallmentAmount = canDefineEmiAmount;
         this.installmentAmountInMultiplesOf = installmentAmountInMultiplesOf;
-        this.syncExpectedWithDisbursementDate = 
-        		syncExpectedWithDisbursementDate;
+        this.syncExpectedWithDisbursementDate =
+                syncExpectedWithDisbursementDate;
         this.canUseForTopup = canUseForTopup;
         this.isEqualAmortization = isEqualAmortization;
     }
@@ -859,12 +880,12 @@ public class LoanProduct extends AbstractPersistableCustom<Long> {
             actualChanges.put("locale", localeAsInput);
             this.minimumDaysBetweenDisbursalAndFirstRepayment = newValue;
         }
-        
+
         if(command.isChangeInBooleanParameterNamed("syncExpectedWithDisbursementDate"
-        		, this.syncExpectedWithDisbursementDate)){
-        	final boolean newValue = command.booleanPrimitiveValueOfParameterNamed("syncExpectedWithDisbursementDate");
-        	actualChanges.put("syncExpectedWithDisbursementDate", newValue);
-        	this.syncExpectedWithDisbursementDate = newValue;
+                , this.syncExpectedWithDisbursementDate)){
+            final boolean newValue = command.booleanPrimitiveValueOfParameterNamed("syncExpectedWithDisbursementDate");
+            actualChanges.put("syncExpectedWithDisbursementDate", newValue);
+            this.syncExpectedWithDisbursementDate = newValue;
         }
 
         /**
@@ -1168,16 +1189,16 @@ public class LoanProduct extends AbstractPersistableCustom<Long> {
         }
         return borrowerCycleVariation;
     }
-    
+
     public boolean syncExpectedWithDisbursementDate() {
-		return syncExpectedWithDisbursementDate;
-	}
+        return syncExpectedWithDisbursementDate;
+    }
 
-	public void setSyncExpectedWithDisbursementDate(boolean syncExpectedWithDisbursementDate) {
-		this.syncExpectedWithDisbursementDate = syncExpectedWithDisbursementDate;
-	}
+    public void setSyncExpectedWithDisbursementDate(boolean syncExpectedWithDisbursementDate) {
+        this.syncExpectedWithDisbursementDate = syncExpectedWithDisbursementDate;
+    }
 
-	public Map<String, BigDecimal> fetchBorrowerCycleVariationsForCycleNumber(final Integer cycleNumber) {
+    public Map<String, BigDecimal> fetchBorrowerCycleVariationsForCycleNumber(final Integer cycleNumber) {
         Map<String, BigDecimal> borrowerCycleVariations = new HashMap<>();
         borrowerCycleVariations.put(LoanProductConstants.principal, this.loanProductRelatedDetail.getPrincipal().getAmount());
         borrowerCycleVariations.put(LoanProductConstants.interestRatePerPeriod,

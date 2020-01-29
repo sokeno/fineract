@@ -18,9 +18,8 @@
  */
 package org.apache.fineract.portfolio.savings.data;
 
-import org.apache.fineract.portfolio.savings.SavingsAccountTransactionType;
-
 import java.io.Serializable;
+import org.apache.fineract.portfolio.savings.SavingsAccountTransactionType;
 
 /**
  * Immutable data object represent savings account transaction type
@@ -137,15 +136,15 @@ public class SavingsAccountTransactionEnumData implements Serializable {
     public boolean isWithholdTax() {
         return this.withholdTax;
     }
-    
+
     public boolean isDividendPayout() {
         return this.dividendPayout;
     }
-    
+
     public boolean isEscheat() {
-    	return this.escheat;
+        return this.escheat;
     }
-    
+
     public boolean isAmountOnHold() {
         return this.amountHold;
     }

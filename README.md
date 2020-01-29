@@ -10,6 +10,11 @@ to start contributing to this project in the online web-based IDE GitPod.io righ
 (You may initially have to press F1 to Find Command and run "Java: Start Language Server".)
 It's of course also possible to contribute with a "traditional" loca ldevelopment environment (see below).
 
+Community
+=========
+
+If you are interested in contributing to this project, but perhaps don't quite know how and where to get started, please [join our developer mailing list](http://fineract.apache.org/#contribute), listen into our conversations, chime into threads, and just send us a friendly "Hello!" introduction email; we're a friendly bunch, and look forward to hearing from you.
+
 
 Requirements
 ============
@@ -100,6 +105,14 @@ variables; please consult the [`docker-compose.yml`](docker-compose.yml) for exa
 _(Note that in previous versions, the `mysqlserver` environment variable used at `docker build` time instead of at
 `docker run` time did something similar; this has changed in [FINERACT-773](https://issues.apache.org/jira/browse/FINERACT-773)),
 and the `mysqlserver` environment variable is now no longer supported.)_
+
+
+Checkstyle
+============
+
+This project enforces [its code conventions](fineract-provider/config/checkstyle/checkstyle.xml) using Checkstyle.
+We recommend that you configure your favourite Java IDE to match those conventions.  For Eclipse, you can
+File > Import > General > Preferences our [config/fineractdev-eclipse-preferences.epf](config/fineractdev-eclipse-preferences.epf).
 
 
 Version

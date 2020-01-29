@@ -21,6 +21,9 @@ package org.apache.fineract.portfolio.transfer.service;
 import com.google.common.collect.Iterables;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import org.apache.fineract.infrastructure.core.api.JsonCommand;
 import org.apache.fineract.infrastructure.core.data.CommandProcessingResult;
 import org.apache.fineract.infrastructure.core.data.CommandProcessingResultBuilder;
@@ -31,9 +34,17 @@ import org.apache.fineract.organisation.office.domain.Office;
 import org.apache.fineract.organisation.office.domain.OfficeRepositoryWrapper;
 import org.apache.fineract.organisation.staff.domain.Staff;
 import org.apache.fineract.organisation.staff.domain.StaffRepositoryWrapper;
-import org.apache.fineract.portfolio.calendar.domain.*;
+import org.apache.fineract.portfolio.calendar.domain.Calendar;
+import org.apache.fineract.portfolio.calendar.domain.CalendarEntityType;
+import org.apache.fineract.portfolio.calendar.domain.CalendarInstance;
+import org.apache.fineract.portfolio.calendar.domain.CalendarInstanceRepository;
+import org.apache.fineract.portfolio.calendar.domain.CalendarType;
 import org.apache.fineract.portfolio.calendar.service.CalendarUtils;
-import org.apache.fineract.portfolio.client.domain.*;
+import org.apache.fineract.portfolio.client.domain.Client;
+import org.apache.fineract.portfolio.client.domain.ClientRepositoryWrapper;
+import org.apache.fineract.portfolio.client.domain.ClientStatus;
+import org.apache.fineract.portfolio.client.domain.ClientTransferDetails;
+import org.apache.fineract.portfolio.client.domain.ClientTransferDetailsRepositoryWrapper;
 import org.apache.fineract.portfolio.client.exception.ClientHasBeenClosedException;
 import org.apache.fineract.portfolio.group.domain.Group;
 import org.apache.fineract.portfolio.group.domain.GroupRepositoryWrapper;
@@ -57,10 +68,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
 @Service
 public class TransferWritePlatformServiceJpaRepositoryImpl implements TransferWritePlatformService {
 
@@ -76,7 +83,7 @@ public class TransferWritePlatformServiceJpaRepositoryImpl implements TransferWr
     private final NoteWritePlatformService noteWritePlatformService;
     private final StaffRepositoryWrapper staffRepositoryWrapper;
     private final ClientTransferDetailsRepositoryWrapper clientTransferDetailsRepositoryWrapper;
- 	private final PlatformSecurityContext context;
+     private final PlatformSecurityContext context;
 
     @Autowired
     public TransferWritePlatformServiceJpaRepositoryImpl(final ClientRepositoryWrapper clientRepositoryWrapper,
@@ -85,9 +92,9 @@ public class TransferWritePlatformServiceJpaRepositoryImpl implements TransferWr
             final LoanRepositoryWrapper loanRepositoryWrapper, final TransfersDataValidator transfersDataValidator,
             final NoteWritePlatformService noteWritePlatformService, final StaffRepositoryWrapper staffRepositoryWrapper,
             final SavingsAccountRepositoryWrapper savingsAccountRepositoryWrapper,
-			final SavingsAccountWritePlatformService savingsAccountWritePlatformService,
-			final ClientTransferDetailsRepositoryWrapper clientTransferDetailsRepositoryWrapper,
-			final PlatformSecurityContext context) {
+            final SavingsAccountWritePlatformService savingsAccountWritePlatformService,
+            final ClientTransferDetailsRepositoryWrapper clientTransferDetailsRepositoryWrapper,
+            final PlatformSecurityContext context) {
         this.clientRepositoryWrapper = clientRepositoryWrapper;
         this.officeRepository = officeRepository;
         this.calendarInstanceRepository = calendarInstanceRepository;
@@ -100,8 +107,8 @@ public class TransferWritePlatformServiceJpaRepositoryImpl implements TransferWr
         this.savingsAccountRepositoryWrapper = savingsAccountRepositoryWrapper;
         this.savingsAccountWritePlatformService = savingsAccountWritePlatformService;
         this.clientTransferDetailsRepositoryWrapper = clientTransferDetailsRepositoryWrapper;
-    	this.context = context;
-        
+        this.context = context;
+
     }
 
     @Override
@@ -250,7 +257,7 @@ public class TransferWritePlatformServiceJpaRepositoryImpl implements TransferWr
     /**
      * This API is meant for transferring clients between branches mainly by
      * Organizations following an Individual lending Model <br>
-     * 
+     *
      * @param clientId
      * @param jsonCommand
      * @return
@@ -281,7 +288,7 @@ public class TransferWritePlatformServiceJpaRepositoryImpl implements TransferWr
      * If the Client is linked to any Groups, we can optionally choose to have
      * all the linkages broken and all JLG Loans are converted into Individual
      * Loans
-     * 
+     *
      * @param clientId
      * @param jsonCommand
      * @return
@@ -295,13 +302,13 @@ public class TransferWritePlatformServiceJpaRepositoryImpl implements TransferWr
         final Long destinationOfficeId = jsonCommand.longValueOfParameterNamed(TransferApiConstants.destinationOfficeIdParamName);
         final Office office = this.officeRepository.findOneWithNotFoundDetection(destinationOfficeId);
         final Client client = this.clientRepositoryWrapper.findOneWithNotFoundDetection(clientId);
-		if (client.getOffice().getId().equals(destinationOfficeId)) {
-			throw new GeneralPlatformDomainRuleException(TransferApiConstants.transferClientToSameOfficeException,
-					TransferApiConstants.transferClientToSameOfficeExceptionMessage, office.getName());
+        if (client.getOffice().getId().equals(destinationOfficeId)) {
+            throw new GeneralPlatformDomainRuleException(TransferApiConstants.transferClientToSameOfficeException,
+                    TransferApiConstants.transferClientToSameOfficeExceptionMessage, office.getName());
 
-		}
-		handleClientTransferLifecycleEvent(client, office, TransferEventType.PROPOSAL, jsonCommand);
-		this.clientRepositoryWrapper.save(client);
+        }
+        handleClientTransferLifecycleEvent(client, office, TransferEventType.PROPOSAL, jsonCommand);
+        this.clientRepositoryWrapper.save(client);
         return new CommandProcessingResultBuilder() //
                 .withClientId(clientId) //
                 .withEntityId(clientId) //
@@ -314,7 +321,7 @@ public class TransferWritePlatformServiceJpaRepositoryImpl implements TransferWr
      * If the Client is linked to any Groups, we can optionally choose to have
      * all the linkages broken and all JLG Loans are converted into Individual
      * Loans
-     * 
+     *
      * @param clientId
      * @param jsonCommand
      * @return
@@ -417,18 +424,18 @@ public class TransferWritePlatformServiceJpaRepositoryImpl implements TransferWr
                     switch (transferEventType) {
                         case ACCEPTANCE:
                             this.savingsAccountWritePlatformService.acceptSavingsTransfer(savingsAccount,
-                            		savingsAccount.retrieveLastTransactionDate(), destinationOffice, staff);
+                                    savingsAccount.retrieveLastTransactionDate(), destinationOffice, staff);
                         break;
                         case PROPOSAL:
                             this.savingsAccountWritePlatformService.initiateSavingsTransfer(savingsAccount,
-                            		transferDate);
+                                    transferDate);
                         break;
                         case REJECTION:
                             this.savingsAccountWritePlatformService.rejectSavingsTransfer(savingsAccount);
                         break;
                         case WITHDRAWAL:
                             this.savingsAccountWritePlatformService.withdrawSavingsTransfer(savingsAccount,
-                            		savingsAccount.retrieveLastTransactionDate());
+                                    savingsAccount.retrieveLastTransactionDate());
                     }
                 }
             }
@@ -473,13 +480,13 @@ public class TransferWritePlatformServiceJpaRepositoryImpl implements TransferWr
                 client.updateProposedTransferDate(null);
         }
 
-		this.noteWritePlatformService.createAndPersistClientNote(client, jsonCommand);
-		Date proposedTransferDate = transferDate != null ? transferDate.toDate() : null;
-		this.clientTransferDetailsRepositoryWrapper
-				.save(ClientTransferDetails.instance(client.getId(), client.getOffice().getId(),
-						destinationOffice.getId(), proposedTransferDate, transferEventType.getValue(),
-						DateUtils.getLocalDateTimeOfTenant().toDate(), this.context.authenticatedUser().getId()));
-	}
+        this.noteWritePlatformService.createAndPersistClientNote(client, jsonCommand);
+        Date proposedTransferDate = transferDate != null ? transferDate.toDate() : null;
+        this.clientTransferDetailsRepositoryWrapper
+                .save(ClientTransferDetails.instance(client.getId(), client.getOffice().getId(),
+                        destinationOffice.getId(), proposedTransferDate, transferEventType.getValue(),
+                        DateUtils.getLocalDateTimeOfTenant().toDate(), this.context.authenticatedUser().getId()));
+    }
 
     private List<Client> assembleListOfClients(final JsonCommand command) {
 

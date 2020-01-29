@@ -19,10 +19,9 @@
 package org.apache.fineract.integrationtests.common;
 
 import com.google.gson.Gson;
-import org.apache.fineract.infrastructure.core.service.DateUtils;
-
 import java.util.ArrayList;
 import java.util.HashMap;
+import org.apache.fineract.infrastructure.core.service.DateUtils;
 
 public class CenterDomain implements Comparable<CenterDomain> {
 
@@ -195,9 +194,9 @@ public class CenterDomain implements Comparable<CenterDomain> {
     public String getHierarchy() {
         return this.hierarchy;
     }
-    
+
     public String getAccountNo(){
-    	return this.accountNo;
+        return this.accountNo;
     }
 
     public int[] getGroupMembers() {

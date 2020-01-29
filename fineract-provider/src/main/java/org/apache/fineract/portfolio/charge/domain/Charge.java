@@ -19,8 +19,11 @@
 package org.apache.fineract.portfolio.charge.domain;
 
 import java.math.BigDecimal;
-import java.util.*;
-
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -28,15 +31,13 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
-
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.apache.fineract.accounting.glaccount.data.GLAccountData;
 import org.apache.fineract.accounting.glaccount.domain.GLAccount;
 import org.apache.fineract.infrastructure.core.api.JsonCommand;
 import org.apache.fineract.infrastructure.core.data.ApiParameterError;
 import org.apache.fineract.infrastructure.core.data.DataValidatorBuilder;
 import org.apache.fineract.infrastructure.core.data.EnumOptionData;
+import org.apache.fineract.infrastructure.core.domain.AbstractPersistableCustom;
 import org.apache.fineract.infrastructure.core.exception.PlatformApiDataValidationException;
 import org.apache.fineract.organisation.monetary.data.CurrencyData;
 import org.apache.fineract.portfolio.charge.api.ChargesApiConstants;
@@ -45,11 +46,9 @@ import org.apache.fineract.portfolio.charge.exception.ChargeDueAtDisbursementCan
 import org.apache.fineract.portfolio.charge.exception.ChargeMustBePenaltyException;
 import org.apache.fineract.portfolio.charge.exception.ChargeParameterUpdateNotSupportedException;
 import org.apache.fineract.portfolio.charge.service.ChargeEnumerations;
-import org.apache.fineract.portfolio.loanaccount.domain.LoanCharge;
 import org.apache.fineract.portfolio.tax.data.TaxGroupData;
 import org.apache.fineract.portfolio.tax.domain.TaxGroup;
 import org.joda.time.MonthDay;
-import org.apache.fineract.infrastructure.core.domain.AbstractPersistableCustom;
 
 @Entity
 @Table(name = "m_charge", uniqueConstraints = { @UniqueConstraint(columnNames = { "name" }, name = "name") })
@@ -495,7 +494,7 @@ public class Charge extends AbstractPersistableCustom<Long> {
     /**
      * Delete is a <i>soft delete</i>. Updates flag on charge so it wont appear
      * in query/report results.
-     * 
+     *
      * Any fields with unique constraints and prepended with id of record.
      */
     public void delete() {
@@ -603,15 +602,15 @@ public class Charge extends AbstractPersistableCustom<Long> {
         if (!(o instanceof Charge)) return false;
         Charge other= (Charge) o;
         return Objects.equals(name, other.name) &&
-			Objects.equals(amount, other.amount) &&
-			Objects.equals(currencyCode, other.currencyCode) &&
-			Objects.equals(chargeAppliesTo, other.chargeAppliesTo) &&
-			Objects.equals(chargeTimeType, other.chargeTimeType) &&
-			Objects.equals(chargeCalculation, other.chargeCalculation) &&
-			Objects.equals(chargePaymentMode, other.chargePaymentMode) &&
-			Objects.equals(feeOnDay, other.feeOnDay) &&
-			Objects.equals(feeInterval, other.feeInterval) &&
-			Objects.equals(feeOnMonth, other.feeOnMonth) &&
+   Objects.equals(amount, other.amount) &&
+   Objects.equals(currencyCode, other.currencyCode) &&
+   Objects.equals(chargeAppliesTo, other.chargeAppliesTo) &&
+   Objects.equals(chargeTimeType, other.chargeTimeType) &&
+   Objects.equals(chargeCalculation, other.chargeCalculation) &&
+   Objects.equals(chargePaymentMode, other.chargePaymentMode) &&
+   Objects.equals(feeOnDay, other.feeOnDay) &&
+   Objects.equals(feeInterval, other.feeInterval) &&
+   Objects.equals(feeOnMonth, other.feeOnMonth) &&
                 penalty == other.penalty &&
                 active == other.active &&
                 deleted == other.deleted &&
@@ -624,7 +623,7 @@ public class Charge extends AbstractPersistableCustom<Long> {
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, amount, currencyCode, chargeAppliesTo, chargeTimeType, chargeCalculation, 
-        		chargePaymentMode, feeOnDay, feeInterval, feeOnMonth, penalty, active, deleted, minCap, maxCap, feeFrequency, account, taxGroup);
+        return Objects.hash(name, amount, currencyCode, chargeAppliesTo, chargeTimeType, chargeCalculation,
+          chargePaymentMode, feeOnDay, feeInterval, feeOnMonth, penalty, active, deleted, minCap, maxCap, feeFrequency, account, taxGroup);
     }
 }

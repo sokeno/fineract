@@ -18,6 +18,27 @@
  */
 package org.apache.fineract.portfolio.savings.domain;
 
+import static org.apache.fineract.portfolio.savings.SavingsApiConstants.amountParamName;
+import static org.apache.fineract.portfolio.savings.SavingsApiConstants.dateFormatParamName;
+import static org.apache.fineract.portfolio.savings.SavingsApiConstants.dueAsOfDateParamName;
+import static org.apache.fineract.portfolio.savings.SavingsApiConstants.feeIntervalParamName;
+import static org.apache.fineract.portfolio.savings.SavingsApiConstants.feeOnMonthDayParamName;
+import static org.apache.fineract.portfolio.savings.SavingsApiConstants.localeParamName;
+
+import java.math.BigDecimal;
+import java.math.MathContext;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Objects;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+import javax.validation.constraints.NotNull;
 import org.apache.fineract.infrastructure.core.api.JsonCommand;
 import org.apache.fineract.infrastructure.core.domain.AbstractPersistableCustom;
 import org.apache.fineract.organisation.monetary.domain.MonetaryCurrency;
@@ -30,20 +51,9 @@ import org.apache.fineract.portfolio.charge.exception.SavingsAccountChargeWithou
 import org.joda.time.LocalDate;
 import org.joda.time.MonthDay;
 
-import javax.persistence.*;
-import javax.validation.constraints.NotNull;
-import java.math.BigDecimal;
-import java.math.MathContext;
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Objects;
-
-import static org.apache.fineract.portfolio.savings.SavingsApiConstants.*;
-
 /**
  * @author dv6
- * 
+ *
  */
 @Entity
 @Table(name = "m_savings_account_charge")
@@ -213,7 +223,7 @@ public class SavingsAccountCharge extends AbstractPersistableCustom<Long> {
         populateDerivedFields(transactionAmount, chargeAmount);
 
         if (this.isWithdrawalFee()
-        		|| this.isSavingsNoActivity()) {
+                || this.isSavingsNoActivity()) {
             this.amountOutstanding = BigDecimal.ZERO;
         }
 
@@ -644,9 +654,9 @@ public class SavingsAccountCharge extends AbstractPersistableCustom<Long> {
     public boolean isSavingsActivation() {
         return ChargeTimeType.fromInt(this.chargeTime).isSavingsActivation();
     }
-    
+
     public boolean isSavingsNoActivity(){
-    	return ChargeTimeType.fromInt(this.chargeTime).isSavingsNoActivityFee();
+        return ChargeTimeType.fromInt(this.chargeTime).isSavingsNoActivityFee();
     }
 
     public boolean isSavingsClosure() {
@@ -684,25 +694,25 @@ public class SavingsAccountCharge extends AbstractPersistableCustom<Long> {
         if (!(o instanceof SavingsAccountCharge)) return false;
         SavingsAccountCharge that = (SavingsAccountCharge) o;
         return Objects.equals(penaltyCharge, that.penaltyCharge) &&
-        	   Objects.equals(paid, that.paid) &&
-        	   Objects.equals(waived, that.waived) &&
-        	   Objects.equals(status, that.status) &&
-        	   Objects.equals(savingsAccount, that.savingsAccount) &&
-        	   Objects.equals(charge, that.charge) &&
-        	   Objects.equals(chargeTime, that.chargeTime) &&
-        	   Objects.equals(dueDate, that.dueDate) &&
-        	   Objects.equals(feeOnMonth, that.feeOnMonth) &&
-        	   Objects.equals(feeOnDay, that.feeOnDay) &&
-        	   Objects.equals(feeInterval, that.feeInterval) &&
-        	   Objects.equals(chargeCalculation, that.chargeCalculation) &&
-        	   Objects.equals(percentage, that.percentage) &&
-        	   Objects.equals(amountPercentageAppliedTo, that.amountPercentageAppliedTo) &&
-        	   Objects.equals(amount, that.amount) &&
-        	   Objects.equals(amountPaid, that.amountPaid) &&
-        	   Objects.equals(amountWaived, that.amountWaived) &&
-        	   Objects.equals(amountWrittenOff, that.amountWrittenOff) &&
-        	   Objects.equals(amountOutstanding, that.amountOutstanding) &&
-        	   Objects.equals(inactivationDate, that.inactivationDate);
+               Objects.equals(paid, that.paid) &&
+               Objects.equals(waived, that.waived) &&
+               Objects.equals(status, that.status) &&
+               Objects.equals(savingsAccount, that.savingsAccount) &&
+               Objects.equals(charge, that.charge) &&
+               Objects.equals(chargeTime, that.chargeTime) &&
+               Objects.equals(dueDate, that.dueDate) &&
+               Objects.equals(feeOnMonth, that.feeOnMonth) &&
+               Objects.equals(feeOnDay, that.feeOnDay) &&
+               Objects.equals(feeInterval, that.feeInterval) &&
+               Objects.equals(chargeCalculation, that.chargeCalculation) &&
+               Objects.equals(percentage, that.percentage) &&
+               Objects.equals(amountPercentageAppliedTo, that.amountPercentageAppliedTo) &&
+               Objects.equals(amount, that.amount) &&
+               Objects.equals(amountPaid, that.amountPaid) &&
+               Objects.equals(amountWaived, that.amountWaived) &&
+               Objects.equals(amountWrittenOff, that.amountWrittenOff) &&
+               Objects.equals(amountOutstanding, that.amountOutstanding) &&
+               Objects.equals(inactivationDate, that.inactivationDate);
     }
 
     @Override
@@ -850,7 +860,7 @@ public class SavingsAccountCharge extends AbstractPersistableCustom<Long> {
      * savings account with account balance of 1000, still these charges can be
      * collected as these charges are initiated by system and it can bring down
      * the balance below the enforced minimum balance).
-     * 
+     *
      */
     public boolean canOverriteSavingAccountRules() {
         return !(this.isSavingsActivation() || this.isWithdrawalFee());

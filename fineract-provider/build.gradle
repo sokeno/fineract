@@ -34,18 +34,19 @@ buildscript {
   }
 
   dependencies {
-     classpath 'io.spring.gradle:dependency-management-plugin:1.0.8.RELEASE'
+     classpath 'io.spring.gradle:dependency-management-plugin:1.0.9.RELEASE'
      classpath 'com.bmuschko:gradle-tomcat-plugin:2.5',
                'nl.javadude.gradle.plugins:license-gradle-plugin:0.11.0',
                'org.zeroturnaround:gradle-jrebel-plugin:1.1.2',
-               'org.springframework.boot:spring-boot-gradle-plugin:2.1.9.RELEASE' // also change springDataJpaVersion below
+               'org.springframework.boot:spring-boot-gradle-plugin:2.2.4.RELEASE'
+      // below
      classpath "org.apache.openjpa:openjpa:$openJPAVersion"
      classpath 'com.radcortez.gradle:openjpa-gradle-plugin:3.1.0'
      classpath 'gradle.plugin.org.nosphere.apache:creadur-rat-gradle:0.2.2'
       classpath "com.github.spotbugs:spotbugs-gradle-plugin:2.0.1"
-      //Use Guava version 23+ as a workaround to spotbug intergration. 
+      // Use Guava version 23+ as a workaround to spotbug intergration.
       // See: https://github.com/spotbugs/spotbugs-gradle-plugin/issues/128#issuecomment-535864882
-      classpath 'com.google.guava:guava:28.1-jre' 
+      classpath 'com.google.guava:guava:28.1-jre'
   }
 }
 
@@ -62,14 +63,14 @@ apply plugin: 'project-report'
 apply plugin: 'java-library'
 apply plugin: 'openjpa'
 apply plugin: "com.github.spotbugs"
-
+apply plugin: 'checkstyle'
 // apply plugin: 'pmd'
 
 dependencyManagement {
   imports {
-    mavenBom 'org.springframework:spring-framework-bom:5.1.10.RELEASE'
+    mavenBom 'org.springframework:spring-framework-bom:5.2.3.RELEASE'
   }
-  
+
   dependencies {
      dependency 'org.springframework.security.oauth:spring-security-oauth2:2.3.6.RELEASE'
      dependency 'org.apache.openjpa:openjpa:3.1.0'
@@ -467,6 +468,8 @@ configurations {
 }
 dependencies {
     driver 'org.drizzle.jdbc:drizzle-jdbc:1.4'
+    checkstyle 'com.puppycrawl.tools:checkstyle:8.28'
+    checkstyle 'com.github.sevntu-checkstyle:sevntu-checks:1.36.0'
 }
 
 URLClassLoader loader = GroovyObject.class.classLoader

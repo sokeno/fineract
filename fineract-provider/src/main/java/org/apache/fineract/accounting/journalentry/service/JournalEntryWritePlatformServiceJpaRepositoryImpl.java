@@ -18,6 +18,16 @@
  */
 package org.apache.fineract.accounting.journalentry.service;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import org.apache.commons.lang.StringUtils;
 import org.apache.fineract.accounting.closure.domain.GLClosure;
 import org.apache.fineract.accounting.closure.domain.GLClosureRepository;
@@ -74,9 +84,6 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
-
-import java.math.BigDecimal;
-import java.util.*;
 
 @Service
 public class JournalEntryWritePlatformServiceJpaRepositoryImpl implements JournalEntryWritePlatformService {
@@ -249,9 +256,9 @@ public class JournalEntryWritePlatformServiceJpaRepositoryImpl implements Journa
                     }
                 }
             }
-			if (credits.length != validCredits.length) {
-				throw new JournalEntryRuntimeException("error.msg.glJournalEntry.invalid.credits", "Invalid Credits.");
-			}
+            if (credits.length != validCredits.length) {
+                throw new JournalEntryRuntimeException("error.msg.glJournalEntry.invalid.credits", "Invalid Credits.");
+            }
         }
 
         if (debits != null && debits.length > 0) {
@@ -264,11 +271,11 @@ public class JournalEntryWritePlatformServiceJpaRepositoryImpl implements Journa
                         validDebits[i] = debit;
                     }
                 }
-			}
-			if (debits.length != validDebits.length) {
-				throw new JournalEntryRuntimeException("error.msg.glJournalEntry.invalid.debits","Invalid Debits");
-			}
-		}
+            }
+            if (debits.length != validDebits.length) {
+                throw new JournalEntryRuntimeException("error.msg.glJournalEntry.invalid.debits","Invalid Debits");
+            }
+        }
     }
 
     private void checkDebitAndCreditAmounts(final SingleDebitOrCreditEntryCommand[] credits, final SingleDebitOrCreditEntryCommand[] debits) {
@@ -323,7 +330,7 @@ public class JournalEntryWritePlatformServiceJpaRepositoryImpl implements Journa
         final boolean useDefaultComment = StringUtils.isBlank(reversalComment);
 
         validateCommentForReversal(reversalComment);
-        
+
         //Before reversal validate accounting closure is done for that branch or not.
         final Date journalEntriesTransactionDate = journalEntries.get(0).getTransactionDate();
         final GLClosure latestGLClosureByBranch = this.glClosureRepository.getLatestGLClosureByBranch(officeId);
@@ -563,7 +570,7 @@ public class JournalEntryWritePlatformServiceJpaRepositoryImpl implements Journa
             }
         }
     }
-    
+
     private void validateBusinessRulesForJournalEntries(final JournalEntryCommand command) {
         /** check if date of Journal entry is valid ***/
         final LocalDate entryLocalDate = command.getTransactionDate();

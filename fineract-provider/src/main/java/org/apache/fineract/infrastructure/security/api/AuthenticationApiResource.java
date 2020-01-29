@@ -18,20 +18,23 @@
  */
 package org.apache.fineract.infrastructure.security.api;
 
-import java.nio.charset.Charset;
+import com.google.gson.Gson;
+import com.sun.jersey.core.util.Base64;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.SwaggerDefinition;
+import io.swagger.annotations.Tag;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Set;
-
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
-
-import io.swagger.annotations.*;
 import org.apache.fineract.infrastructure.core.data.EnumOptionData;
 import org.apache.fineract.infrastructure.core.serialization.ToApiJsonSerializer;
 import org.apache.fineract.infrastructure.security.constants.TwoFactorConstants;
@@ -51,15 +54,14 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 
-import com.google.gson.Gson;
-
-import com.sun.jersey.core.util.Base64;
-
 @Component
 @Scope("singleton")
 @Profile("basicauth")
 @Path("/authentication")
-@Api(value = "Authentication HTTP Basic", description = "An API capability that allows client applications to verify authentication details using HTTP Basic Authentication.")
+@Api(tags = {"Authentication HTTP Basic"})
+@SwaggerDefinition(tags = {
+        @Tag(name = "Authentication HTTP Basic", description = "An API capability that allows client applications to verify authentication details using HTTP Basic Authentication.")
+})
 public class AuthenticationApiResource {
 
     public static class AuthenticateRequest {

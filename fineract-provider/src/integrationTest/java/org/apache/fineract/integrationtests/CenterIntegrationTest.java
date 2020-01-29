@@ -18,12 +18,18 @@
  */
 package org.apache.fineract.integrationtests;
 
+import static org.junit.Assert.assertEquals;
+
 import com.google.gson.Gson;
 import com.jayway.restassured.builder.RequestSpecBuilder;
 import com.jayway.restassured.builder.ResponseSpecBuilder;
 import com.jayway.restassured.http.ContentType;
 import com.jayway.restassured.specification.RequestSpecification;
 import com.jayway.restassured.specification.ResponseSpecification;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import org.apache.fineract.integrationtests.common.CenterDomain;
 import org.apache.fineract.integrationtests.common.CenterHelper;
 import org.apache.fineract.integrationtests.common.OfficeHelper;
@@ -32,13 +38,6 @@ import org.apache.fineract.integrationtests.common.organisation.StaffHelper;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-
-import static org.junit.Assert.assertEquals;
 
 public class CenterIntegrationTest {
 
@@ -239,7 +238,7 @@ public class CenterIntegrationTest {
 
         final Integer groupID = CenterHelper.createCenter(this.requestSpec, this.responseSpec);
         CenterHelper.verifyCenterCreatedOnServer(this.requestSpec, this.responseSpec, groupID);
-        
+
         final HashMap assignStaffToCenterResponseMap = (HashMap) CenterHelper.assignStaff(this.requestSpec,
                 this.responseSpec, groupID.toString(),
                 staffId.longValue());
@@ -248,7 +247,7 @@ public class CenterIntegrationTest {
         Assert.assertNotNull(centerWithStaffAssigned);
         Assert.assertTrue(centerWithStaffAssigned.getId().intValue() == groupID);
         Assert.assertTrue(centerWithStaffAssigned.getStaffId().intValue() == staffId);
-        
+
         final HashMap unassignStaffToCenterResponseMap = (HashMap) CenterHelper.unassignStaff(this.requestSpec,
                 this.responseSpec, groupID.toString(),
                 staffId.longValue());
@@ -257,7 +256,7 @@ public class CenterIntegrationTest {
         Assert.assertNotNull(centerWithStaffUnssigned);
         Assert.assertTrue(centerWithStaffUnssigned.getId().intValue() == groupID);
         Assert.assertTrue(centerWithStaffUnssigned.getStaffId() == null);
-        
+
     }
 
 }
