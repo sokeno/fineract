@@ -43,6 +43,6 @@ services:
     depends_on:
       - fineractmysql
     environment:
-      - JAVA_OPTS=-Dfineract_tenants_url=jdbc:mysql:thin://fineractmysql:3306/mifosplatform-tenants -Djava.awt.headless=true -XX:+UseG1GC -Dfile.encoding=UTF-8
-      - FINERACT_DEFAULT_TENANTDB_HOSTNAME=fineractmysql
+      - JAVA_OPTS=-Dfineract_tenants_url=jdbc:mysql:thin://localhost:3306/mifosplatform-tenants -Djava.awt.headless=true -XX:+UseG1GC -Dfile.encoding=UTF-8
+      - FINERACT_DEFAULT_TENANTDB_HOSTNAME=localhost
       - FINERACT_DEFAULT_TENANTDB_PORT=3306
