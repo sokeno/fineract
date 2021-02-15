@@ -20,7 +20,11 @@ package org.apache.fineract.interoperation.util;
 
 import java.util.Locale;
 
-public class InteropUtil {
+public final class InteropUtil {
+
+    private InteropUtil() {
+
+    }
 
     public static final String ISO8601_DATE_TIME_FORMAT = "yyyy-MM-ddTHH:mm:ss.SSS[-HH:MM]";
     public static final String ISO8601_DATE_FORMAT = "yyyy-MM-dd";
@@ -37,6 +41,7 @@ public class InteropUtil {
 
     public static final String ACTION_TRANSFER_PREPARE = "PREPARE";
     public static final String ACTION_TRANSFER_COMMIT = "CREATE";
+    public static final String ACTION_TRANSFER_RELEASE = "RELEASE";
 
     public static final String PARAM_LOCALE = "locale";
     public static final String PARAM_DATE_FORMAT = "dateFormat";

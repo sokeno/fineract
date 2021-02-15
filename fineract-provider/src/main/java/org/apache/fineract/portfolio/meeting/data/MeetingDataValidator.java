@@ -30,13 +30,14 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.fineract.infrastructure.core.api.JsonCommand;
 import org.apache.fineract.infrastructure.core.data.ApiParameterError;
 import org.apache.fineract.infrastructure.core.data.DataValidatorBuilder;
@@ -44,7 +45,6 @@ import org.apache.fineract.infrastructure.core.exception.InvalidJsonException;
 import org.apache.fineract.infrastructure.core.exception.PlatformApiDataValidationException;
 import org.apache.fineract.infrastructure.core.serialization.FromJsonHelper;
 import org.apache.fineract.portfolio.meeting.MeetingApiConstants;
-import org.joda.time.LocalDate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -52,10 +52,9 @@ import org.springframework.stereotype.Component;
 public class MeetingDataValidator {
 
     private final FromJsonHelper fromApiJsonHelper;
-    private static final Set<String> MEETING_REQUEST_DATA_PARAMETERS = new HashSet<>(
-            Arrays.asList(MeetingApiConstants.meetingDateParamName, MeetingApiConstants.localeParamName,
-                    MeetingApiConstants.dateFormatParamName, MeetingApiConstants.calendarIdParamName,
-                    MeetingApiConstants.clientsAttendanceParamName));
+    private static final Set<String> MEETING_REQUEST_DATA_PARAMETERS = new HashSet<>(Arrays.asList(MeetingApiConstants.meetingDateParamName,
+            MeetingApiConstants.localeParamName, MeetingApiConstants.dateFormatParamName, MeetingApiConstants.calendarIdParamName,
+            MeetingApiConstants.clientsAttendanceParamName));
 
     @Autowired
     public MeetingDataValidator(final FromJsonHelper fromApiJsonHelper) {
@@ -64,7 +63,9 @@ public class MeetingDataValidator {
 
     public void validateForCreate(final JsonCommand command) {
         final String json = command.json();
-        if (StringUtils.isBlank(json)) { throw new InvalidJsonException(); }
+        if (StringUtils.isBlank(json)) {
+            throw new InvalidJsonException();
+        }
 
         final Type typeOfMap = new TypeToken<Map<String, Object>>() {}.getType();
         this.fromApiJsonHelper.checkForUnsupportedParameters(typeOfMap, json, MEETING_REQUEST_DATA_PARAMETERS);
@@ -91,7 +92,9 @@ public class MeetingDataValidator {
 
     public void validateForUpdate(final JsonCommand command) {
         final String json = command.json();
-        if (StringUtils.isBlank(json)) { throw new InvalidJsonException(); }
+        if (StringUtils.isBlank(json)) {
+            throw new InvalidJsonException();
+        }
 
         final Type typeOfMap = new TypeToken<Map<String, Object>>() {}.getType();
         this.fromApiJsonHelper.checkForUnsupportedParameters(typeOfMap, json, MEETING_REQUEST_DATA_PARAMETERS);
@@ -122,7 +125,9 @@ public class MeetingDataValidator {
 
     public void validateForUpdateAttendance(final JsonCommand command) {
         final String json = command.json();
-        if (StringUtils.isBlank(json)) { throw new InvalidJsonException(); }
+        if (StringUtils.isBlank(json)) {
+            throw new InvalidJsonException();
+        }
 
         final Type typeOfMap = new TypeToken<Map<String, Object>>() {}.getType();
         this.fromApiJsonHelper.checkForUnsupportedParameters(typeOfMap, json, MEETING_REQUEST_DATA_PARAMETERS);
@@ -137,7 +142,9 @@ public class MeetingDataValidator {
     }
 
     private void throwExceptionIfValidationWarningsExist(final List<ApiParameterError> dataValidationErrors) {
-        if (!dataValidationErrors.isEmpty()) { throw new PlatformApiDataValidationException(dataValidationErrors); }
+        if (!dataValidationErrors.isEmpty()) {
+            throw new PlatformApiDataValidationException(dataValidationErrors);
+        }
     }
 
     private void validateAttendanceDetails(final JsonElement element, final DataValidatorBuilder baseDataValidator) {

@@ -19,6 +19,7 @@
 package org.apache.fineract.portfolio.client.domain;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
@@ -48,11 +49,10 @@ import org.apache.fineract.organisation.office.domain.Office;
 import org.apache.fineract.organisation.office.domain.OrganisationCurrency;
 import org.apache.fineract.portfolio.paymentdetail.domain.PaymentDetail;
 import org.apache.fineract.useradministration.domain.AppUser;
-import org.joda.time.LocalDate;
 
 @Entity
 @Table(name = "m_client_transaction", uniqueConstraints = { @UniqueConstraint(columnNames = { "external_id" }, name = "external_id") })
-public class ClientTransaction extends AbstractPersistableCustom<Long> {
+public class ClientTransaction extends AbstractPersistableCustom {
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "client_id", nullable = false)
@@ -93,7 +93,7 @@ public class ClientTransaction extends AbstractPersistableCustom<Long> {
     @JoinColumn(name = "appuser_id", nullable = true)
     private AppUser appUser;
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "clientTransaction", orphanRemoval = true, fetch=FetchType.EAGER)
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "clientTransaction", orphanRemoval = true, fetch = FetchType.EAGER)
     private Set<ClientChargePaidBy> clientChargePaidByCollection = new HashSet<>();
 
     @Transient
@@ -120,12 +120,12 @@ public class ClientTransaction extends AbstractPersistableCustom<Long> {
 
     public ClientTransaction(Client client, Office office, PaymentDetail paymentDetail, Integer typeOf, LocalDate transactionLocalDate,
             Money amount, boolean reversed, String externalId, Date createdDate, String currencyCode, AppUser appUser) {
-        super();
+
         this.client = client;
         this.office = office;
         this.paymentDetail = paymentDetail;
         this.typeOf = typeOf;
-        this.dateOf = transactionLocalDate.toDate();
+        this.dateOf = Date.from(transactionLocalDate.atStartOfDay(DateUtils.getDateTimeZoneOfTenant()).toInstant());
         this.amount = amount.getAmount();
         this.reversed = reversed;
         this.externalId = externalId;
@@ -139,8 +139,7 @@ public class ClientTransaction extends AbstractPersistableCustom<Long> {
     }
 
     /**
-     * Converts the content of this Client Transaction to a map which can be
-     * passed to the accounting module
+     * Converts the content of this Client Transaction to a map which can be passed to the accounting module
      *
      *
      *
@@ -204,7 +203,7 @@ public class ClientTransaction extends AbstractPersistableCustom<Long> {
     }
 
     public Client getClient() {
-        return this.client ;
+        return this.client;
     }
 
     public Money getAmount() {
@@ -228,7 +227,7 @@ public class ClientTransaction extends AbstractPersistableCustom<Long> {
     }
 
     public LocalDate getTransactionDate() {
-        return new LocalDate(this.dateOf);
+        return LocalDate.ofInstant(this.dateOf.toInstant(), DateUtils.getDateTimeZoneOfTenant());
     }
 
 }

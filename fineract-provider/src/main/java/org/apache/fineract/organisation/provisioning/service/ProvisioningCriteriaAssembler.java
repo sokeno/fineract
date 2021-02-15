@@ -22,6 +22,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import java.math.BigDecimal;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -30,6 +31,7 @@ import java.util.Set;
 import org.apache.fineract.accounting.glaccount.domain.GLAccount;
 import org.apache.fineract.accounting.glaccount.domain.GLAccountRepository;
 import org.apache.fineract.infrastructure.core.serialization.FromJsonHelper;
+import org.apache.fineract.infrastructure.core.service.DateUtils;
 import org.apache.fineract.infrastructure.security.service.PlatformSecurityContext;
 import org.apache.fineract.organisation.provisioning.constants.ProvisioningCriteriaConstants;
 import org.apache.fineract.organisation.provisioning.domain.LoanProductProvisionCriteria;
@@ -40,7 +42,6 @@ import org.apache.fineract.organisation.provisioning.domain.ProvisioningCriteria
 import org.apache.fineract.organisation.provisioning.exception.ProvisioningCriteriaOverlappingDefinitionException;
 import org.apache.fineract.portfolio.loanproduct.domain.LoanProduct;
 import org.apache.fineract.portfolio.loanproduct.domain.LoanProductRepository;
-import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -76,17 +77,17 @@ public class ProvisioningCriteriaAssembler {
         } else {
             loanProducts = loanProductRepository.findAll();
         }
-        return loanProducts ;
+        return loanProducts;
     }
 
     private void validateRange(Set<ProvisioningCriteriaDefinition> criteriaDefinitions) {
-        List<ProvisioningCriteriaDefinition> def = new ArrayList<>() ;
-        def.addAll(criteriaDefinitions) ;
+        List<ProvisioningCriteriaDefinition> def = new ArrayList<>();
+        def.addAll(criteriaDefinitions);
 
         for (int i = 0; i < def.size(); i++) {
             for (int j = i + 1; j < def.size(); j++) {
                 if (def.get(i).isOverlapping(def.get(j))) {
-                    throw new ProvisioningCriteriaOverlappingDefinitionException() ;
+                    throw new ProvisioningCriteriaOverlappingDefinitionException();
                 }
             }
         }
@@ -95,18 +96,18 @@ public class ProvisioningCriteriaAssembler {
     public ProvisioningCriteria fromParsedJson(final JsonElement jsonElement) {
         ProvisioningCriteria provisioningCriteria = createCriteria(jsonElement);
         final Locale locale = this.fromApiJsonHelper.extractLocaleParameter(jsonElement.getAsJsonObject());
-        List<LoanProduct> loanProducts = parseLoanProducts(jsonElement) ;
+        List<LoanProduct> loanProducts = parseLoanProducts(jsonElement);
 
         Set<ProvisioningCriteriaDefinition> criteriaDefinitions = new HashSet<>();
-        JsonArray jsonProvisioningCriteria = this.fromApiJsonHelper.extractJsonArrayNamed(
-                ProvisioningCriteriaConstants.JSON_PROVISIONING_DEFINITIONS_PARAM, jsonElement);
+        JsonArray jsonProvisioningCriteria = this.fromApiJsonHelper
+                .extractJsonArrayNamed(ProvisioningCriteriaConstants.JSON_PROVISIONING_DEFINITIONS_PARAM, jsonElement);
         for (JsonElement element : jsonProvisioningCriteria) {
             JsonObject jsonObject = element.getAsJsonObject();
             ProvisioningCriteriaDefinition provisioningCriteriaData = createProvisioningCriteriaDefinitions(jsonObject, locale,
                     provisioningCriteria);
             criteriaDefinitions.add(provisioningCriteriaData);
         }
-        validateRange(criteriaDefinitions) ;
+        validateRange(criteriaDefinitions);
         Set<LoanProductProvisionCriteria> mapping = new HashSet<>();
         for (LoanProduct loanProduct : loanProducts) {
             mapping.add(new LoanProductProvisionCriteria(provisioningCriteria, loanProduct));
@@ -117,10 +118,12 @@ public class ProvisioningCriteriaAssembler {
     }
 
     private ProvisioningCriteria createCriteria(final JsonElement jsonElement) {
-        final String criteriaName = this.fromApiJsonHelper.extractStringNamed(ProvisioningCriteriaConstants.JSON_CRITERIANAME_PARAM, jsonElement);
+        final String criteriaName = this.fromApiJsonHelper.extractStringNamed(ProvisioningCriteriaConstants.JSON_CRITERIANAME_PARAM,
+                jsonElement);
 
-        ProvisioningCriteria criteria = new ProvisioningCriteria(criteriaName, platformSecurityContext.authenticatedUser(), new DateTime(),
-                platformSecurityContext.authenticatedUser(), new DateTime());
+        ProvisioningCriteria criteria = new ProvisioningCriteria(criteriaName, platformSecurityContext.authenticatedUser(),
+                ZonedDateTime.now(DateUtils.getDateTimeZoneOfTenant()), platformSecurityContext.authenticatedUser(),
+                ZonedDateTime.now(DateUtils.getDateTimeZoneOfTenant()));
         return criteria;
     }
 
@@ -129,10 +132,12 @@ public class ProvisioningCriteriaAssembler {
         Long categoryId = this.fromApiJsonHelper.extractLongNamed(ProvisioningCriteriaConstants.JSON_CATEOGRYID_PARAM, jsonObject);
         Long minimumAge = this.fromApiJsonHelper.extractLongNamed(ProvisioningCriteriaConstants.JSON_MINIMUM_AGE_PARAM, jsonObject);
         Long maximumAge = this.fromApiJsonHelper.extractLongNamed(ProvisioningCriteriaConstants.JSON_MAXIMUM_AGE_PARAM, jsonObject);
-        BigDecimal provisioningpercentage = this.fromApiJsonHelper.extractBigDecimalNamed(ProvisioningCriteriaConstants.JSON_PROVISIONING_PERCENTAGE_PARAM,
-                jsonObject, locale);
-        Long liabilityAccountId = this.fromApiJsonHelper.extractLongNamed(ProvisioningCriteriaConstants.JSON_LIABILITY_ACCOUNT_PARAM, jsonObject);
-        Long expenseAccountId = this.fromApiJsonHelper.extractLongNamed(ProvisioningCriteriaConstants.JSON_EXPENSE_ACCOUNT_PARAM, jsonObject);
+        BigDecimal provisioningpercentage = this.fromApiJsonHelper
+                .extractBigDecimalNamed(ProvisioningCriteriaConstants.JSON_PROVISIONING_PERCENTAGE_PARAM, jsonObject, locale);
+        Long liabilityAccountId = this.fromApiJsonHelper.extractLongNamed(ProvisioningCriteriaConstants.JSON_LIABILITY_ACCOUNT_PARAM,
+                jsonObject);
+        Long expenseAccountId = this.fromApiJsonHelper.extractLongNamed(ProvisioningCriteriaConstants.JSON_EXPENSE_ACCOUNT_PARAM,
+                jsonObject);
 
         ProvisioningCategory provisioningCategory = provisioningCategoryRepository.findById(categoryId).orElse(null);
         GLAccount liabilityAccount = glAccountRepository.findById(liabilityAccountId).orElse(null);

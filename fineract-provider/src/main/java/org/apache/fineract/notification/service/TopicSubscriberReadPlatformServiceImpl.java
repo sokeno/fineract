@@ -20,18 +20,18 @@ package org.apache.fineract.notification.service;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.Collection;
 import org.apache.fineract.infrastructure.core.domain.JdbcSupport;
 import org.apache.fineract.infrastructure.core.service.RoutingDataSource;
 import org.apache.fineract.notification.data.TopicSubscriberData;
-import org.joda.time.LocalDate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Service;
 
 @Service
-public class TopicSubscriberReadPlatformServiceImpl implements TopicSubscriberReadPlatformService{
+public class TopicSubscriberReadPlatformServiceImpl implements TopicSubscriberReadPlatformService {
 
     private final JdbcTemplate jdbcTemplate;
 
@@ -44,7 +44,7 @@ public class TopicSubscriberReadPlatformServiceImpl implements TopicSubscriberRe
 
         private final String schema;
 
-        public TopicSubscriberMapper() {
+        TopicSubscriberMapper() {
             final StringBuilder sqlBuilder = new StringBuilder(200);
             sqlBuilder.append("ts.id as id, ts.topic_id as topicId, ts.user_id as userId, ");
             sqlBuilder.append("ts.subscription_date as subscriptionDate from topic_subscriber ts ");

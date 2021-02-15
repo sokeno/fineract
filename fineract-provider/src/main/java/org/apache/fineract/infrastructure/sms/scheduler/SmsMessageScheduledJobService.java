@@ -31,23 +31,27 @@ public interface SmsMessageScheduledJobService {
     /**
      * sends a batch of SMS messages to the SMS gateway
      **/
-    public void sendMessagesToGateway();
+    void sendMessagesToGateway();
 
     /**
      * sends triggered batch SMS messages to SMS gateway
+     *
      * @param smsDataMap
      */
-    public void sendTriggeredMessages(Map<SmsCampaign, Collection<SmsMessage>> smsDataMap);
+    void sendTriggeredMessages(Map<SmsCampaign, Collection<SmsMessage>> smsDataMap);
 
     /**
      * Sends a triggered batch of SMS messages to SMS gateway using specified provider.
-     * @param smsMessage the SMS messages to queue for sending.
-     * @param providerId the provider ID of the SMS gateway to be used
+     *
+     * @param smsMessage
+     *            the SMS messages to queue for sending.
+     * @param providerId
+     *            the provider ID of the SMS gateway to be used
      */
     void sendTriggeredMessage(Collection<SmsMessage> smsMessage, long providerId);
 
     /**
      * get delivery report from the SMS gateway
      **/
-    public void getDeliveryReports();
+    void getDeliveryReports();
 }

@@ -33,14 +33,15 @@ public class CreateCreditBureauLoanProductMappingCommandHandler implements NewCo
     private final CreditBureauLoanProductMappingWritePlatformService writePlatformService;
 
     @Autowired
-    public CreateCreditBureauLoanProductMappingCommandHandler(final CreditBureauLoanProductMappingWritePlatformService writePlatformService) {
+    public CreateCreditBureauLoanProductMappingCommandHandler(
+            final CreditBureauLoanProductMappingWritePlatformService writePlatformService) {
         this.writePlatformService = writePlatformService;
     }
 
     @Override
     public CommandProcessingResult processCommand(JsonCommand command) {
 
-        return this.writePlatformService.addCreditBureauLoanProductMapping(command.getCreditBureauId(), command);
+        return this.writePlatformService.addCreditBureauLoanProductMapping(command.getOrganisationCreditBureauId(), command);
     }
 
 }

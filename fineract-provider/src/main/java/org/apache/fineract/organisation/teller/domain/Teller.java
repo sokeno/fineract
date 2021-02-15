@@ -18,6 +18,7 @@
  */
 package org.apache.fineract.organisation.teller.domain;
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -32,18 +33,16 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.UniqueConstraint;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.fineract.accounting.glaccount.domain.GLAccount;
 import org.apache.fineract.infrastructure.core.api.JsonCommand;
 import org.apache.fineract.infrastructure.core.domain.AbstractPersistableCustom;
+import org.apache.fineract.infrastructure.core.service.DateUtils;
 import org.apache.fineract.organisation.office.domain.Office;
-import org.joda.time.LocalDate;
 
 @Entity
-@Table(name = "m_tellers", uniqueConstraints = {
-        @UniqueConstraint(name = "ux_tellers_name", columnNames = {"name"})
-})
-public class Teller extends AbstractPersistableCustom<Long> {
+@Table(name = "m_tellers", uniqueConstraints = { @UniqueConstraint(name = "ux_tellers_name", columnNames = { "name" }) })
+public class Teller extends AbstractPersistableCustom {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "office_id", nullable = false)
@@ -78,19 +77,19 @@ public class Teller extends AbstractPersistableCustom<Long> {
     private Set<Cashier> cashiers;
 
     public Teller() {
-        super();
+
     }
 
-    private Teller (final Office staffOffice, final String name, final String description, final LocalDate startDate,
+    private Teller(final Office staffOffice, final String name, final String description, final LocalDate startDate,
             final LocalDate endDate, final TellerStatus status) {
 
         this.name = StringUtils.defaultIfEmpty(name, null);
         this.description = StringUtils.defaultIfEmpty(description, null);
         if (startDate != null) {
-            this.startDate = startDate.toDateTimeAtStartOfDay().toDate();
+            this.startDate = Date.from(startDate.atStartOfDay(DateUtils.getDateTimeZoneOfTenant()).toInstant());
         }
         if (endDate != null) {
-            this.endDate = endDate.toDateTimeAtStartOfDay().toDate();
+            this.endDate = Date.from(endDate.atStartOfDay(DateUtils.getDateTimeZoneOfTenant()).toInstant());
         }
         if (status != null) {
             this.status = status.getValue();
@@ -98,20 +97,13 @@ public class Teller extends AbstractPersistableCustom<Long> {
         this.office = staffOffice;
 
         /*
-        if (StringUtils.isNotBlank(name)) {
-            this.name = name.trim();
-        } else {
-            this.name = null;
-        }
-
-        if (StringUtils.isNotBlank(description)) {
-            this.description = description.trim();
-        } else {
-            this.description = null;
-        } */
+         * if (StringUtils.isNotBlank(name)) { this.name = name.trim(); } else { this.name = null; }
+         *
+         * if (StringUtils.isNotBlank(description)) { this.description = description.trim(); } else { this.description =
+         * null; }
+         */
 
     }
-
 
     public static Teller fromJson(final Office tellerOffice, final JsonCommand command) {
         final String name = command.stringValueOfParameterNamed("name");
@@ -121,7 +113,7 @@ public class Teller extends AbstractPersistableCustom<Long> {
         final Integer tellerStatusInt = command.integerValueOfParameterNamed("status");
         final TellerStatus status = TellerStatus.fromInt(tellerStatusInt);
 
-        return new Teller (tellerOffice, name, description, startDate, endDate, status);
+        return new Teller(tellerOffice, name, description, startDate, endDate, status);
     }
 
     public Map<String, Object> update(Office tellerOffice, final JsonCommand command) {
@@ -160,7 +152,7 @@ public class Teller extends AbstractPersistableCustom<Long> {
             actualChanges.put("locale", localeAsInput);
 
             final LocalDate newValue = command.localDateValueOfParameterNamed(startDateParamName);
-            this.startDate = newValue.toDate();
+            this.startDate = Date.from(newValue.atStartOfDay(DateUtils.getDateTimeZoneOfTenant()).toInstant());
         }
 
         final String endDateParamName = "endDate";
@@ -171,7 +163,7 @@ public class Teller extends AbstractPersistableCustom<Long> {
             actualChanges.put("locale", localeAsInput);
 
             final LocalDate newValue = command.localDateValueOfParameterNamed(endDateParamName);
-            this.endDate = newValue.toDate();
+            this.endDate = Date.from(newValue.atStartOfDay(DateUtils.getDateTimeZoneOfTenant()).toInstant());
         }
 
         final String statusParamName = "status";
@@ -187,8 +179,6 @@ public class Teller extends AbstractPersistableCustom<Long> {
 
         return actualChanges;
     }
-
-
 
     public Office getOffice() {
         return office;
@@ -237,7 +227,7 @@ public class Teller extends AbstractPersistableCustom<Long> {
     public LocalDate getStartLocalDate() {
         LocalDate startLocalDate = null;
         if (this.startDate != null) {
-            startLocalDate = LocalDate.fromDateFields(this.startDate);
+            startLocalDate = LocalDate.ofInstant(this.startDate.toInstant(), DateUtils.getDateTimeZoneOfTenant());
         }
         return startLocalDate;
     }
@@ -253,7 +243,7 @@ public class Teller extends AbstractPersistableCustom<Long> {
     public LocalDate getEndLocalDate() {
         LocalDate endLocalDate = null;
         if (this.endDate != null) {
-            endLocalDate = LocalDate.fromDateFields(this.endDate);
+            endLocalDate = LocalDate.ofInstant(this.endDate.toInstant(), DateUtils.getDateTimeZoneOfTenant());
         }
         return endLocalDate;
     }

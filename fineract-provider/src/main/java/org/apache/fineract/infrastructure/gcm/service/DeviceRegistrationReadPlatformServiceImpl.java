@@ -20,14 +20,16 @@ package org.apache.fineract.infrastructure.gcm.service;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.Collection;
+import java.util.Date;
 import org.apache.fineract.infrastructure.core.domain.JdbcSupport;
+import org.apache.fineract.infrastructure.core.service.DateUtils;
 import org.apache.fineract.infrastructure.core.service.RoutingDataSource;
 import org.apache.fineract.infrastructure.gcm.domain.DeviceRegistrationData;
 import org.apache.fineract.infrastructure.gcm.exception.DeviceRegistrationNotFoundException;
 import org.apache.fineract.infrastructure.security.service.PlatformSecurityContext;
 import org.apache.fineract.portfolio.client.data.ClientData;
-import org.joda.time.LocalDate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -35,31 +37,25 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Service;
 
 @Service
-public class DeviceRegistrationReadPlatformServiceImpl implements
-        DeviceRegistrationReadPlatformService {
+public class DeviceRegistrationReadPlatformServiceImpl implements DeviceRegistrationReadPlatformService {
 
     private final JdbcTemplate jdbcTemplate;
     private final PlatformSecurityContext context;
 
     @Autowired
-    public DeviceRegistrationReadPlatformServiceImpl(
-            final PlatformSecurityContext context,
-            final RoutingDataSource dataSource) {
+    public DeviceRegistrationReadPlatformServiceImpl(final PlatformSecurityContext context, final RoutingDataSource dataSource) {
         this.context = context;
         this.jdbcTemplate = new JdbcTemplate(dataSource);
     }
 
-    private static final class DeviceRegistrationDataMapper implements
-            RowMapper<DeviceRegistrationData> {
+    private static final class DeviceRegistrationDataMapper implements RowMapper<DeviceRegistrationData> {
 
         private final String schema;
 
-        public DeviceRegistrationDataMapper() {
+        DeviceRegistrationDataMapper() {
             final StringBuilder sqlBuilder = new StringBuilder(200);
-            sqlBuilder
-                    .append(" cdr.id as id, cdr.registration_id as registrationId, cdr.updatedon_date as updatedOnDate, ");
-            sqlBuilder
-                    .append(" c.id as clientId, c.display_name as clientName ");
+            sqlBuilder.append(" cdr.id as id, cdr.registration_id as registrationId, cdr.updatedon_date as updatedOnDate, ");
+            sqlBuilder.append(" c.id as clientId, c.display_name as clientName ");
             sqlBuilder.append(" from client_device_registration cdr ");
             sqlBuilder.append(" left join m_client c on c.id = cdr.client_id ");
             this.schema = sqlBuilder.toString();
@@ -70,19 +66,16 @@ public class DeviceRegistrationReadPlatformServiceImpl implements
         }
 
         @Override
-        public DeviceRegistrationData mapRow(final ResultSet rs,
-                @SuppressWarnings("unused") final int rowNum)
-                throws SQLException {
+        public DeviceRegistrationData mapRow(final ResultSet rs, @SuppressWarnings("unused") final int rowNum) throws SQLException {
 
             final Long id = JdbcSupport.getLong(rs, "id");
-            final LocalDate updatedOnDate = JdbcSupport.getLocalDate(rs,
-                    "updatedOnDate");
+            final LocalDate updatedOnDate = JdbcSupport.getLocalDate(rs, "updatedOnDate");
             final String registrationId = rs.getString("registrationId");
             final Long clientId = rs.getLong("clientId");
             final String clientName = rs.getString("clientName");
             ClientData clientData = ClientData.instance(clientId, clientName);
-            return DeviceRegistrationData.instance(id, clientData,
-                    registrationId, updatedOnDate.toDate());
+            return DeviceRegistrationData.instance(id, clientData, registrationId,
+                    Date.from(updatedOnDate.atStartOfDay(DateUtils.getDateTimeZoneOfTenant()).toInstant()));
         }
     }
 
@@ -100,24 +93,21 @@ public class DeviceRegistrationReadPlatformServiceImpl implements
             this.context.authenticatedUser();
             DeviceRegistrationDataMapper drm = new DeviceRegistrationDataMapper();
             String sql = "select " + drm.schema() + " where cdr.id = ? ";
-            return this.jdbcTemplate.queryForObject(sql, drm,
-                    new Object[] { id });
+            return this.jdbcTemplate.queryForObject(sql, drm, new Object[] { id });
         } catch (final EmptyResultDataAccessException e) {
-            throw new DeviceRegistrationNotFoundException(id);
+            throw new DeviceRegistrationNotFoundException(id, e);
         }
     }
 
     @Override
-    public DeviceRegistrationData retrieveDeviceRegiistrationByClientId(
-            Long clientId) {
+    public DeviceRegistrationData retrieveDeviceRegiistrationByClientId(Long clientId) {
         try {
             this.context.authenticatedUser();
             DeviceRegistrationDataMapper drm = new DeviceRegistrationDataMapper();
             String sql = "select " + drm.schema() + " where c.id = ? ";
-            return this.jdbcTemplate.queryForObject(sql, drm,
-                    new Object[] { clientId });
+            return this.jdbcTemplate.queryForObject(sql, drm, new Object[] { clientId });
         } catch (final EmptyResultDataAccessException e) {
-            throw new DeviceRegistrationNotFoundException(clientId, "client");
+            throw new DeviceRegistrationNotFoundException(clientId, "client", e);
         }
     }
 

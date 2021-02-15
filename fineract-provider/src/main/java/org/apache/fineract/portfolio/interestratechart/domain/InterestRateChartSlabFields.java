@@ -27,18 +27,17 @@ import static org.apache.fineract.portfolio.interestratechart.InterestRateChartS
 import static org.apache.fineract.portfolio.interestratechart.InterestRateChartSlabApiConstants.toPeriodParamName;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.util.Comparator;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
 import org.apache.fineract.infrastructure.core.api.JsonCommand;
 import org.apache.fineract.infrastructure.core.data.DataValidatorBuilder;
 import org.apache.fineract.portfolio.savings.SavingsPeriodFrequencyType;
-import org.joda.time.Days;
-import org.joda.time.LocalDate;
-import org.joda.time.Months;
-import org.joda.time.Weeks;
-import org.joda.time.Years;
 
 @Embeddable
 public class InterestRateChartSlabFields {
@@ -163,7 +162,7 @@ public class InterestRateChartSlabFields {
 
     public boolean isFromPeriodGreaterThanToPeriod() {
         boolean isGreater = false;
-        if (this.toPeriod != null && this.fromPeriod.compareTo(this.toPeriod) > 1) {
+        if (this.toPeriod != null && this.fromPeriod.compareTo(this.toPeriod) > 0) {
             isGreater = true;
         }
         return isGreater;
@@ -171,7 +170,7 @@ public class InterestRateChartSlabFields {
 
     public boolean isAmountRangeFromGreaterThanTo() {
         boolean isGreater = false;
-        if (this.amountRangeFrom != null && this.amountRangeTo != null && this.amountRangeFrom.compareTo(this.amountRangeTo) > 1) {
+        if (this.amountRangeFrom != null && this.amountRangeTo != null && this.amountRangeFrom.compareTo(this.amountRangeTo) > 0) {
             isGreater = true;
         }
         return isGreater;
@@ -197,7 +196,9 @@ public class InterestRateChartSlabFields {
         if (isPrimaryGroupingByAmount) {
             if (isAmountSame) {
                 if (hasPeriods) {
-                    if (this.toPeriod == null) { return true; }
+                    if (this.toPeriod == null) {
+                        return true;
+                    }
                     return isNotProperPeriodStart(that.fromPeriod);
                 }
             } else {
@@ -206,7 +207,9 @@ public class InterestRateChartSlabFields {
         } else {
             if (isPeriodSame) {
                 if (hasAmounts) {
-                    if (this.amountRangeTo == null) { return true; }
+                    if (this.amountRangeTo == null) {
+                        return true;
+                    }
                     return isNotProperAmountStart(that.amountRangeFrom);
                 }
             } else {
@@ -226,8 +229,8 @@ public class InterestRateChartSlabFields {
 
     public static boolean isNotProperAmountStart(final InterestRateChartSlabFields interestRateChartSlabFields) {
         return interestRateChartSlabFields.amountRangeFrom != null
-                && (interestRateChartSlabFields.amountRangeFrom.compareTo(BigDecimal.ONE) != 0 && interestRateChartSlabFields.amountRangeFrom
-                        .compareTo(BigDecimal.ZERO) != 0);
+                && (interestRateChartSlabFields.amountRangeFrom.compareTo(BigDecimal.ONE) != 0
+                        && interestRateChartSlabFields.amountRangeFrom.compareTo(BigDecimal.ZERO) != 0);
     }
 
     private boolean isNotProperAmountStart(final BigDecimal amount) {
@@ -270,7 +273,9 @@ public class InterestRateChartSlabFields {
             return true;
         } else if (this.toPeriod == null) {
             return true;
-        } else if (that.toPeriod == null) { return that.fromPeriod <= this.toPeriod; }
+        } else if (that.toPeriod == null) {
+            return that.fromPeriod <= this.toPeriod;
+        }
         return this.fromPeriod <= that.toPeriod && that.fromPeriod <= this.toPeriod;
     }
 
@@ -281,8 +286,10 @@ public class InterestRateChartSlabFields {
             return true;
         } else if (this.amountRangeTo == null) {
             return true;
-        } else if (that.amountRangeTo == null) { return that.amountRangeFrom.compareTo(this.amountRangeTo) < 1; }
-        return this.amountRangeFrom.compareTo(that.amountRangeTo) < 1 && that.amountRangeFrom.compareTo(this.amountRangeTo) < 1;
+        } else if (that.amountRangeTo == null) {
+            return that.amountRangeFrom.compareTo(this.amountRangeTo) <= 0;
+        }
+        return this.amountRangeFrom.compareTo(that.amountRangeTo) <= 0 && that.amountRangeFrom.compareTo(this.amountRangeTo) <= 0;
     }
 
     public boolean isAmountSame(final InterestRateChartSlabFields that) {
@@ -295,7 +302,9 @@ public class InterestRateChartSlabFields {
 
     public boolean isIntegerSame(final Integer obj1, final Integer obj2) {
         if (obj1 == null || obj2 == null) {
-            if (obj1 == obj2) { return true; }
+            if (Objects.equals(obj1, obj2)) {
+                return true;
+            }
             return false;
         }
         return obj1.equals(obj2);
@@ -303,7 +312,9 @@ public class InterestRateChartSlabFields {
 
     public boolean isBigDecimalSame(final BigDecimal obj1, final BigDecimal obj2) {
         if (obj1 == null || obj2 == null) {
-            if (obj1 == obj2) { return true; }
+            if (Objects.compare(obj1, obj2, Comparator.nullsFirst(Comparator.naturalOrder())) == 0 ? Boolean.TRUE : Boolean.FALSE) {
+                return true;
+            }
             return false;
         }
         return obj1.compareTo(obj2) == 0;
@@ -327,16 +338,16 @@ public class InterestRateChartSlabFields {
         final SavingsPeriodFrequencyType periodFrequencyType = SavingsPeriodFrequencyType.fromInt(periodType());
         switch (periodFrequencyType) {
             case DAYS:
-                actualDepositPeriod = Days.daysBetween(periodStartDate, periodEndDate).getDays();
+                actualDepositPeriod = Math.toIntExact(ChronoUnit.DAYS.between(periodStartDate, periodEndDate));
             break;
             case WEEKS:
-                actualDepositPeriod = Weeks.weeksBetween(periodStartDate, periodEndDate).getWeeks();
+                actualDepositPeriod = Math.toIntExact(ChronoUnit.WEEKS.between(periodStartDate, periodEndDate));
             break;
             case MONTHS:
-                actualDepositPeriod = Months.monthsBetween(periodStartDate, periodEndDate).getMonths();
+                actualDepositPeriod = Math.toIntExact(ChronoUnit.MONTHS.between(periodStartDate, periodEndDate));
             break;
             case YEARS:
-                actualDepositPeriod = Years.yearsBetween(periodStartDate, periodEndDate).getYears();
+                actualDepositPeriod = Math.toIntExact(ChronoUnit.YEARS.between(periodStartDate, periodEndDate));
             break;
             case INVALID:
                 actualDepositPeriod = 0;// default value

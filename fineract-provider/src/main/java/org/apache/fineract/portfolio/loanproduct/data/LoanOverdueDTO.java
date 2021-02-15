@@ -18,8 +18,8 @@
  */
 package org.apache.fineract.portfolio.loanproduct.data;
 
+import java.time.LocalDate;
 import org.apache.fineract.portfolio.loanaccount.domain.Loan;
-import org.joda.time.LocalDate;
 
 public class LoanOverdueDTO {
 
@@ -47,7 +47,6 @@ public class LoanOverdueDTO {
     public LocalDate getRecalculateFrom() {
         return this.recalculateFrom;
     }
-
 
     public LocalDate getLastChargeAppliedDate() {
         return this.lastChargeAppliedDate;

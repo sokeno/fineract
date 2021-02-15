@@ -48,11 +48,11 @@ public class CreditBureauLoanProductMappingWritePlatformServiceImpl implements C
 
     @Autowired
     public CreditBureauLoanProductMappingWritePlatformServiceImpl(final PlatformSecurityContext context,
-            final CreditBureauLoanProductMappingRepository creditbureauLoanProductMappingRepository,
+            final CreditBureauLoanProductMappingRepository creditBureauLoanProductMappingRepository,
             final OrganisationCreditBureauRepository organisationCreditBureauRepository, LoanProductRepository loanProductRepository,
             final CreditBureauLoanProductCommandFromApiJsonDeserializer fromApiJsonDeserializer) {
         this.context = context;
-        this.creditBureauLoanProductMappingRepository = creditbureauLoanProductMappingRepository;
+        this.creditBureauLoanProductMappingRepository = creditBureauLoanProductMappingRepository;
         this.organisationCreditBureauRepository = organisationCreditBureauRepository;
         this.loanProductRepository = loanProductRepository;
         this.fromApiJsonDeserializer = fromApiJsonDeserializer;
@@ -61,14 +61,14 @@ public class CreditBureauLoanProductMappingWritePlatformServiceImpl implements C
 
     @Transactional
     @Override
-    public CommandProcessingResult addCreditBureauLoanProductMapping(Long creditBureau_id, JsonCommand command) {
+    public CommandProcessingResult addCreditBureauLoanProductMapping(Long organisationCreditBureauId, JsonCommand command) {
         this.context.authenticatedUser();
 
-        this.fromApiJsonDeserializer.validateForCreate(command.json(), creditBureau_id);
+        this.fromApiJsonDeserializer.validateForCreate(command.json(), organisationCreditBureauId);
 
         final long lpid = command.longValueOfParameterNamed("loanProductId");
 
-        final OrganisationCreditBureau orgcb = this.organisationCreditBureauRepository.getOne(creditBureau_id);
+        final OrganisationCreditBureau orgcb = this.organisationCreditBureauRepository.getOne(organisationCreditBureauId);
 
         final LoanProduct lp = this.loanProductRepository.getOne(lpid);
 
@@ -76,8 +76,7 @@ public class CreditBureauLoanProductMappingWritePlatformServiceImpl implements C
 
         this.creditBureauLoanProductMappingRepository.save(cb_lp);
 
-        return new CommandProcessingResultBuilder().withCommandId(command.commandId()).withEntityId(cb_lp.getId())
-                .build();
+        return new CommandProcessingResultBuilder().withCommandId(command.commandId()).withEntityId(cb_lp.getId()).build();
 
     }
 
@@ -88,11 +87,10 @@ public class CreditBureauLoanProductMappingWritePlatformServiceImpl implements C
         this.fromApiJsonDeserializer.validateForUpdate(command.json());
 
         final Long mappingid = command.longValueOfParameterNamed("creditbureauLoanProductMappingId");
-        final boolean is_active = command.booleanPrimitiveValueOfParameterNamed("is_active");
+        final boolean isActive = command.booleanPrimitiveValueOfParameterNamed("isActive");
         final CreditBureauLoanProductMapping cblpmapping = this.creditBureauLoanProductMappingRepository.getOne(mappingid);
-        cblpmapping.setIs_active(is_active);
+        cblpmapping.setIs_active(isActive);
         this.creditBureauLoanProductMappingRepository.saveAndFlush(cblpmapping);
-        return new CommandProcessingResultBuilder().withCommandId(command.commandId()).withEntityId(cblpmapping.getId())
-                .build();
+        return new CommandProcessingResultBuilder().withCommandId(command.commandId()).withEntityId(cblpmapping.getId()).build();
     }
 }

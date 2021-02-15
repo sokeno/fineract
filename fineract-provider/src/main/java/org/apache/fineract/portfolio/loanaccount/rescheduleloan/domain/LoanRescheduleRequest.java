@@ -18,6 +18,7 @@
  */
 package org.apache.fineract.portfolio.loanaccount.rescheduleloan.domain;
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -34,16 +35,16 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import org.apache.fineract.infrastructure.codes.domain.CodeValue;
 import org.apache.fineract.infrastructure.core.domain.AbstractPersistableCustom;
+import org.apache.fineract.infrastructure.core.service.DateUtils;
 import org.apache.fineract.portfolio.loanaccount.domain.Loan;
 import org.apache.fineract.portfolio.loanaccount.domain.LoanRescheduleRequestToTermVariationMapping;
 import org.apache.fineract.portfolio.loanaccount.domain.LoanStatus;
 import org.apache.fineract.portfolio.loanaccount.domain.LoanTermVariations;
 import org.apache.fineract.useradministration.domain.AppUser;
-import org.joda.time.LocalDate;
 
 @Entity
 @Table(name = "m_loan_reschedule_request")
-public class LoanRescheduleRequest extends AbstractPersistableCustom<Long> {
+public class LoanRescheduleRequest extends AbstractPersistableCustom {
 
     @ManyToOne
     @JoinColumn(name = "loan_id", nullable = false)
@@ -93,7 +94,7 @@ public class LoanRescheduleRequest extends AbstractPersistableCustom<Long> {
     @JoinColumn(name = "rejected_by_user_id")
     private AppUser rejectedByUser;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch=FetchType.EAGER)
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @JoinColumn(name = "loan_reschedule_request_id", nullable = false)
     private Set<LoanRescheduleRequestToTermVariationMapping> loanRescheduleRequestToTermVariationMappings = new HashSet<>();
 
@@ -165,8 +166,8 @@ public class LoanRescheduleRequest extends AbstractPersistableCustom<Long> {
 
         LocalDate localDate = null;
 
-        if(this.rescheduleFromDate != null) {
-            localDate = new LocalDate(this.rescheduleFromDate);
+        if (this.rescheduleFromDate != null) {
+            localDate = LocalDate.ofInstant(this.rescheduleFromDate.toInstant(), DateUtils.getDateTimeZoneOfTenant());
         }
 
         return localDate;
@@ -192,8 +193,8 @@ public class LoanRescheduleRequest extends AbstractPersistableCustom<Long> {
     public LocalDate getSubmittedOnDate() {
         LocalDate localDate = null;
 
-        if(this.submittedOnDate != null) {
-            localDate = new LocalDate(this.submittedOnDate);
+        if (this.submittedOnDate != null) {
+            localDate = LocalDate.ofInstant(this.submittedOnDate.toInstant(), DateUtils.getDateTimeZoneOfTenant());
         }
 
         return localDate;
@@ -212,8 +213,8 @@ public class LoanRescheduleRequest extends AbstractPersistableCustom<Long> {
     public LocalDate getApprovedOnDate() {
         LocalDate localDate = null;
 
-        if(this.approvedOnDate != null) {
-            localDate = new LocalDate(this.approvedOnDate);
+        if (this.approvedOnDate != null) {
+            localDate = LocalDate.ofInstant(this.approvedOnDate.toInstant(), DateUtils.getDateTimeZoneOfTenant());
         }
 
         return localDate;
@@ -232,8 +233,8 @@ public class LoanRescheduleRequest extends AbstractPersistableCustom<Long> {
     public LocalDate getRejectedOnDate() {
         LocalDate localDate = null;
 
-        if(this.rejectedOnDate != null) {
-            localDate = new LocalDate(this.rejectedOnDate);
+        if (this.rejectedOnDate != null) {
+            localDate = LocalDate.ofInstant(this.rejectedOnDate.toInstant(), DateUtils.getDateTimeZoneOfTenant());
         }
 
         return localDate;
@@ -245,7 +246,7 @@ public class LoanRescheduleRequest extends AbstractPersistableCustom<Long> {
     public Boolean getRecalculateInterest() {
         boolean recalculateInterest = false;
 
-        if(this.recalculateInterest != null) {
+        if (this.recalculateInterest != null) {
             recalculateInterest = this.recalculateInterest;
         }
 
@@ -260,35 +261,39 @@ public class LoanRescheduleRequest extends AbstractPersistableCustom<Long> {
     }
 
     /**
-     * change the status of the loan reschedule request to approved, also updating the
-     * approvedByUser and approvedOnDate properties
+     * change the status of the loan reschedule request to approved, also updating the approvedByUser and approvedOnDate
+     * properties
      *
-     * @param approvedByUser the user who approved the request
-     * @param approvedOnDate the date of the approval
+     * @param approvedByUser
+     *            the user who approved the request
+     * @param approvedOnDate
+     *            the date of the approval
      *
      **/
     public void approve(final AppUser approvedByUser, final LocalDate approvedOnDate) {
 
-        if(approvedOnDate != null) {
+        if (approvedOnDate != null) {
             this.approvedByUser = approvedByUser;
-            this.approvedOnDate = approvedOnDate.toDate();
+            this.approvedOnDate = Date.from(approvedOnDate.atStartOfDay(DateUtils.getDateTimeZoneOfTenant()).toInstant());
             this.statusEnum = LoanStatus.APPROVED.getValue();
         }
     }
 
     /**
-     * change the status of the loan reschedule request to rejected, also updating the
-     * approvedByUser and approvedOnDate properties
+     * change the status of the loan reschedule request to rejected, also updating the approvedByUser and approvedOnDate
+     * properties
      *
-     * @param approvedByUser the user who approved the request
-     * @param approvedOnDate the date of the approval
+     * @param approvedByUser
+     *            the user who approved the request
+     * @param approvedOnDate
+     *            the date of the approval
      *
      **/
     public void reject(final AppUser approvedByUser, final LocalDate approvedOnDate) {
 
-        if(approvedOnDate != null) {
+        if (approvedOnDate != null) {
             this.rejectedByUser = approvedByUser;
-            this.rejectedOnDate = approvedOnDate.toDate();
+            this.rejectedOnDate = Date.from(approvedOnDate.atStartOfDay(DateUtils.getDateTimeZoneOfTenant()).toInstant());
             this.statusEnum = LoanStatus.REJECTED.getValue();
         }
     }
@@ -302,10 +307,9 @@ public class LoanRescheduleRequest extends AbstractPersistableCustom<Long> {
     }
 
     public LoanTermVariations getDueDateTermVariationIfExists() {
-        if(this.loanRescheduleRequestToTermVariationMappings != null
-                && this.loanRescheduleRequestToTermVariationMappings.size() > 0){
+        if (this.loanRescheduleRequestToTermVariationMappings != null && this.loanRescheduleRequestToTermVariationMappings.size() > 0) {
             for (LoanRescheduleRequestToTermVariationMapping mapping : this.loanRescheduleRequestToTermVariationMappings) {
-                if(mapping.getLoanTermVariations().getTermType().isDueDateVariation()){
+                if (mapping.getLoanTermVariations().getTermType().isDueDateVariation()) {
                     return mapping.getLoanTermVariations();
                 }
             }

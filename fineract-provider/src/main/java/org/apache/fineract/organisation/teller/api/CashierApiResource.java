@@ -18,9 +18,9 @@
  */
 package org.apache.fineract.organisation.teller.api;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.SwaggerDefinition;
-import io.swagger.annotations.Tag;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.Date;
 import javax.ws.rs.Consumes;
@@ -32,8 +32,6 @@ import javax.ws.rs.core.MediaType;
 import org.apache.fineract.infrastructure.core.serialization.DefaultToApiJsonSerializer;
 import org.apache.fineract.organisation.teller.data.CashierData;
 import org.apache.fineract.organisation.teller.service.TellerManagementReadPlatformService;
-import org.joda.time.format.DateTimeFormatter;
-import org.joda.time.format.ISODateTimeFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -41,10 +39,8 @@ import org.springframework.stereotype.Component;
 @Path("cashiers")
 @Component
 @Scope("singleton")
-@Api(tags = {"Cashiers"})
-@SwaggerDefinition(tags = {
-        @Tag(name = "Cashiers", description = "")
-})
+
+@Tag(name = "Cashiers", description = "")
 public class CashierApiResource {
 
     private final DefaultToApiJsonSerializer<CashierData> jsonSerializer;
@@ -62,9 +58,9 @@ public class CashierApiResource {
     @Produces(MediaType.APPLICATION_JSON)
     public String getCashierData(@QueryParam("officeId") final Long officeId, @QueryParam("tellerId") final Long tellerId,
             @QueryParam("staffId") final Long staffId, @QueryParam("date") final String date) {
-        final DateTimeFormatter dateFormatter = ISODateTimeFormat.basicDate();
+        final DateTimeFormatter dateFormatter = DateTimeFormatter.BASIC_ISO_DATE;
 
-        final Date dateRestriction = (date != null ? dateFormatter.parseDateTime(date).toDate() : new Date());
+        final Date dateRestriction = (date != null ? Date.from(ZonedDateTime.parse(date, dateFormatter).toInstant()) : new Date());
 
         final Collection<CashierData> allCashiers = this.readPlatformService.getCashierData(officeId, tellerId, staffId, dateRestriction);
 

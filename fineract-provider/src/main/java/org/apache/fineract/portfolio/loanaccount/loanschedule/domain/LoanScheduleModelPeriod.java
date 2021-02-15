@@ -19,11 +19,11 @@
 package org.apache.fineract.portfolio.loanaccount.loanschedule.domain;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Set;
 import org.apache.fineract.organisation.monetary.domain.Money;
 import org.apache.fineract.portfolio.loanaccount.domain.LoanInterestRecalcualtionAdditionalDetails;
 import org.apache.fineract.portfolio.loanaccount.loanschedule.data.LoanSchedulePeriodData;
-import org.joda.time.LocalDate;
 
 public interface LoanScheduleModelPeriod {
 
@@ -52,5 +52,14 @@ public interface LoanScheduleModelPeriod {
     void addPrincipalAmount(Money principalDue);
 
     void addInterestAmount(Money interestDue);
+
     Set<LoanInterestRecalcualtionAdditionalDetails> getLoanCompoundingDetails();
+
+    void setEMIFixedSpecificToInstallmentTrue();
+
+    boolean isEMIFixedSpecificToInstallment();
+
+    BigDecimal rescheduleInterestPortion();
+
+    void setRescheduleInterestPortion(BigDecimal rescheduleInterestPortion);
 }

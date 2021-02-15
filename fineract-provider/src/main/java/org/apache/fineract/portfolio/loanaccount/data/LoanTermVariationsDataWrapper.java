@@ -18,11 +18,11 @@
  */
 package org.apache.fineract.portfolio.loanaccount.data;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.ListIterator;
-import org.joda.time.LocalDate;
 
 public class LoanTermVariationsDataWrapper {
 
@@ -136,8 +136,8 @@ public class LoanTermVariationsDataWrapper {
         return hasNext(date, iterator);
     }
 
-    public void updateLoanTermVariationsData(final List<LoanTermVariationsData> exceptionData){
-        if(this.exceptionData != null && exceptionData != null && exceptionData.size() > 0){
+    public void updateLoanTermVariationsData(final List<LoanTermVariationsData> exceptionData) {
+        if (this.exceptionData != null && exceptionData != null && exceptionData.size() > 0) {
             this.exceptionData.addAll(exceptionData);
             deriveLoanTermVariations();
         }
@@ -162,7 +162,7 @@ public class LoanTermVariationsDataWrapper {
         this.dueDateIterator = this.dueDateVariation.listIterator();
     }
 
-    public void resetVariations(){
+    public void resetVariations() {
 
         for (LoanTermVariationsData loanTermVariationsData : this.exceptionData) {
             loanTermVariationsData.setProcessed(false);

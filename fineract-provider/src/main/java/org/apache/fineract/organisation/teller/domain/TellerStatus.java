@@ -24,11 +24,8 @@ package org.apache.fineract.organisation.teller.domain;
 
 public enum TellerStatus {
 
-    INVALID(0, "tellerStatusType.invalid"),
-    PENDING(100, "tellerStatusType.pending"),
-    ACTIVE(300, "tellerStatusType.active"),
-    INACTIVE(400, "tellerStatusType.inactive"),
-    CLOSED(600, "tellerStatusType.closed");
+    INVALID(0, "tellerStatusType.invalid"), PENDING(100, "tellerStatusType.pending"), ACTIVE(300, "tellerStatusType.active"), INACTIVE(400,
+            "tellerStatusType.inactive"), CLOSED(600, "tellerStatusType.closed");
 
     private final Integer value;
     private final String code;
@@ -53,7 +50,7 @@ public enum TellerStatus {
         return status;
     }
 
-    private TellerStatus(final Integer value, final String code) {
+    TellerStatus(final Integer value, final String code) {
         this.value = value;
         this.code = code;
     }

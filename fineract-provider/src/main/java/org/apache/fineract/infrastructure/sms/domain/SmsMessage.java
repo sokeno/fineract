@@ -18,6 +18,7 @@
  */
 package org.apache.fineract.infrastructure.sms.domain;
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -32,15 +33,15 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.fineract.infrastructure.campaigns.sms.domain.SmsCampaign;
 import org.apache.fineract.infrastructure.core.api.JsonCommand;
 import org.apache.fineract.infrastructure.core.domain.AbstractPersistableCustom;
+import org.apache.fineract.infrastructure.core.service.DateUtils;
 import org.apache.fineract.infrastructure.sms.SmsApiConstants;
 import org.apache.fineract.organisation.staff.domain.Staff;
 import org.apache.fineract.portfolio.client.domain.Client;
 import org.apache.fineract.portfolio.group.domain.Group;
-import org.joda.time.LocalDate;
 
 @Entity
 @Table(name = "sms_messages_outbound")
-public class SmsMessage extends AbstractPersistableCustom<Long> {
+public class SmsMessage extends AbstractPersistableCustom {
 
     @Column(name = "external_id", nullable = true)
     private String externalId;
@@ -70,11 +71,11 @@ public class SmsMessage extends AbstractPersistableCustom<Long> {
     @Column(name = "message", nullable = false)
     private String message;
 
-//    @Column(name = "provider_id", nullable = true)
-//    private Long providerId;
-//
-//    @Column(name = "campaign_name", nullable = true)
-//    private String campaignName;
+    // @Column(name = "provider_id", nullable = true)
+    // private Long providerId;
+    //
+    // @Column(name = "campaign_name", nullable = true)
+    // private String campaignName;
 
     @Column(name = "submittedon_date", nullable = true)
     @Temporal(TemporalType.DATE)
@@ -89,16 +90,19 @@ public class SmsMessage extends AbstractPersistableCustom<Long> {
 
     public static SmsMessage pendingSms(final String externalId, final Group group, final Client client, final Staff staff,
             final String message, final String mobileNo, final SmsCampaign smsCampaign, final boolean isNotification) {
-        return new SmsMessage(externalId, group, client, staff, SmsMessageStatusType.PENDING, message, mobileNo, smsCampaign, isNotification);
+        return new SmsMessage(externalId, group, client, staff, SmsMessageStatusType.PENDING, message, mobileNo, smsCampaign,
+                isNotification);
     }
 
     public static SmsMessage sentSms(final String externalId, final Group group, final Client client, final Staff staff,
             final String message, final String mobileNo, final SmsCampaign smsCampaign, final boolean isNotification) {
-        return new SmsMessage(externalId, group, client, staff, SmsMessageStatusType.WAITING_FOR_DELIVERY_REPORT, message, mobileNo, smsCampaign, isNotification);
+        return new SmsMessage(externalId, group, client, staff, SmsMessageStatusType.WAITING_FOR_DELIVERY_REPORT, message, mobileNo,
+                smsCampaign, isNotification);
     }
 
     public static SmsMessage instance(String externalId, final Group group, final Client client, final Staff staff,
-            final SmsMessageStatusType statusType, final String message, final String mobileNo, final SmsCampaign smsCampaign, final boolean isNotification) {
+            final SmsMessageStatusType statusType, final String message, final String mobileNo, final SmsCampaign smsCampaign,
+            final boolean isNotification) {
 
         return new SmsMessage(externalId, group, client, staff, statusType, message, mobileNo, smsCampaign, isNotification);
     }
@@ -117,7 +121,8 @@ public class SmsMessage extends AbstractPersistableCustom<Long> {
         this.mobileNo = mobileNo;
         this.message = message;
         this.smsCampaign = smsCampaign;
-        this.submittedOnDate = LocalDate.now().toDate();
+        this.submittedOnDate = Date
+                .from(LocalDate.now(DateUtils.getDateTimeZoneOfTenant()).atStartOfDay(DateUtils.getDateTimeZoneOfTenant()).toInstant());
         this.isNotification = isNotification;
     }
 
@@ -193,6 +198,5 @@ public class SmsMessage extends AbstractPersistableCustom<Long> {
     public void setNotification(boolean isNotification) {
         this.isNotification = isNotification;
     }
-
 
 }

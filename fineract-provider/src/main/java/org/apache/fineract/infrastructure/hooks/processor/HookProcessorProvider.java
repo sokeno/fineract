@@ -18,6 +18,7 @@
  */
 package org.apache.fineract.infrastructure.hooks.processor;
 
+import static org.apache.fineract.infrastructure.hooks.api.HookApiConstants.elasticSearchTemplateName;
 import static org.apache.fineract.infrastructure.hooks.api.HookApiConstants.smsTemplateName;
 import static org.apache.fineract.infrastructure.hooks.api.HookApiConstants.webTemplateName;
 
@@ -33,8 +34,7 @@ public class HookProcessorProvider implements ApplicationContextAware {
     private ApplicationContext applicationContext;
 
     @Override
-    public void setApplicationContext(
-            final ApplicationContext applicationContext) throws BeansException {
+    public void setApplicationContext(final ApplicationContext applicationContext) throws BeansException {
         this.applicationContext = applicationContext;
     }
 
@@ -42,11 +42,11 @@ public class HookProcessorProvider implements ApplicationContextAware {
         HookProcessor processor;
         final String templateName = hook.getHookTemplate().getName();
         if (templateName.equalsIgnoreCase(smsTemplateName)) {
-            processor = this.applicationContext.getBean("twilioHookProcessor",
-                    TwilioHookProcessor.class);
+            processor = this.applicationContext.getBean("twilioHookProcessor", TwilioHookProcessor.class);
         } else if (templateName.equals(webTemplateName)) {
-            processor = this.applicationContext.getBean("webHookProcessor",
-                    WebHookProcessor.class);
+            processor = this.applicationContext.getBean("webHookProcessor", WebHookProcessor.class);
+        } else if (templateName.equals(elasticSearchTemplateName)) {
+            processor = this.applicationContext.getBean("elasticSearchHookProcessor", ElasticSearchHookProcessor.class);
         } else {
             processor = null;
         }

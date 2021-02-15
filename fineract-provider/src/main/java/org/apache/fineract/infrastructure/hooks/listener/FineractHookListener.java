@@ -29,19 +29,22 @@ import org.apache.fineract.infrastructure.hooks.processor.HookProcessorProvider;
 import org.apache.fineract.infrastructure.hooks.service.HookReadPlatformService;
 import org.apache.fineract.infrastructure.security.service.TenantDetailsService;
 import org.apache.fineract.useradministration.domain.AppUser;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class FineractHookListener implements HookListener {
 
+    private static final Logger LOG = LoggerFactory.getLogger(FineractHookListener.class);
+
     private final HookProcessorProvider hookProcessorProvider;
     private final HookReadPlatformService hookReadPlatformService;
     private final TenantDetailsService tenantDetailsService;
 
     @Autowired
-    public FineractHookListener(final HookProcessorProvider hookProcessorProvider,
-            final HookReadPlatformService hookReadPlatformService,
+    public FineractHookListener(final HookProcessorProvider hookProcessorProvider, final HookReadPlatformService hookReadPlatformService,
             final TenantDetailsService tenantDetailsService) {
         this.hookReadPlatformService = hookReadPlatformService;
         this.hookProcessorProvider = hookProcessorProvider;
@@ -50,10 +53,8 @@ public class FineractHookListener implements HookListener {
 
     @Override
     public void onApplicationEvent(final HookEvent event) {
-
         final String tenantIdentifier = event.getTenantIdentifier();
-        final FineractPlatformTenant tenant = this.tenantDetailsService
-                .loadTenantById(tenantIdentifier);
+        final FineractPlatformTenant tenant = this.tenantDetailsService.loadTenantById(tenantIdentifier);
         ThreadLocalContextUtil.setTenant(tenant);
 
         final AppUser appUser = event.getAppUser();
@@ -64,16 +65,17 @@ public class FineractHookListener implements HookListener {
         final String actionName = hookEventSource.getActionName();
         final String payload = event.getPayload();
 
-        final List<Hook> hooks = this.hookReadPlatformService
-                .retrieveHooksByEvent(hookEventSource.getEntityName(),
-                        hookEventSource.getActionName());
+        final List<Hook> hooks = this.hookReadPlatformService.retrieveHooksByEvent(hookEventSource.getEntityName(),
+                hookEventSource.getActionName());
 
         for (final Hook hook : hooks) {
-            final HookProcessor processor = this.hookProcessorProvider
-                    .getProcessor(hook);
-            processor.process(hook, appUser, payload, entityName, actionName,
-                    tenantIdentifier, authToken);
+            final HookProcessor processor = this.hookProcessorProvider.getProcessor(hook);
+            try {
+                processor.process(hook, appUser, payload, entityName, actionName, tenantIdentifier, authToken);
+            } catch (Throwable e) {
+                LOG.error("Hook {} failed in HookProcessor {} for tenantIdentifier/user {}/{}, entityName: {}, actionName: {}, payload {} ",
+                        hook.getId(), processor.getClass().getSimpleName(), tenantIdentifier, appUser, entityName, actionName, payload, e);
+            }
         }
     }
-
 }

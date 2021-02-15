@@ -25,20 +25,19 @@ import org.apache.fineract.accounting.provisioning.data.ProvisioningEntryData;
 import org.apache.fineract.infrastructure.core.service.Page;
 import org.apache.fineract.infrastructure.core.service.SearchParameters;
 
-
 public interface ProvisioningEntriesReadPlatformService {
 
-    public Collection<LoanProductProvisioningEntryData> retrieveLoanProductsProvisioningData(Date date) ;
+    Collection<LoanProductProvisioningEntryData> retrieveLoanProductsProvisioningData(Date date);
 
-    public ProvisioningEntryData retrieveProvisioningEntryData(Long entryId) ;
+    ProvisioningEntryData retrieveProvisioningEntryData(Long entryId);
 
-    public Page<ProvisioningEntryData> retrieveAllProvisioningEntries(Integer offset, Integer limit) ;
+    Page<ProvisioningEntryData> retrieveAllProvisioningEntries(Integer offset, Integer limit);
 
-    public ProvisioningEntryData retrieveProvisioningEntryData(String date) ;
+    ProvisioningEntryData retrieveProvisioningEntryData(String date);
 
-    public ProvisioningEntryData retrieveProvisioningEntryDataByCriteriaId(Long criteriaId) ;
+    ProvisioningEntryData retrieveProvisioningEntryDataByCriteriaId(Long criteriaId);
 
-    public ProvisioningEntryData retrieveExistingProvisioningIdDateWithJournals() ;
+    ProvisioningEntryData retrieveExistingProvisioningIdDateWithJournals();
 
-    public Page<LoanProductProvisioningEntryData> retrieveProvisioningEntries(SearchParameters searchParams) ;
+    Page<LoanProductProvisioningEntryData> retrieveProvisioningEntries(SearchParameters searchParams);
 }

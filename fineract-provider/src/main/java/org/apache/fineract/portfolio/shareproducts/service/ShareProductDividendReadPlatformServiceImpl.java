@@ -21,6 +21,7 @@ package org.apache.fineract.portfolio.shareproducts.service;
 import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -35,7 +36,6 @@ import org.apache.fineract.portfolio.shareaccounts.data.ShareAccountDividendData
 import org.apache.fineract.portfolio.shareaccounts.service.SharesEnumerations;
 import org.apache.fineract.portfolio.shareproducts.data.ShareProductData;
 import org.apache.fineract.portfolio.shareproducts.data.ShareProductDividendPayOutData;
-import org.joda.time.LocalDate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -49,8 +49,7 @@ public class ShareProductDividendReadPlatformServiceImpl implements ShareProduct
     private final PaginationHelper<ShareProductDividendPayOutData> paginationHelper = new PaginationHelper<>();
 
     @Autowired
-    public ShareProductDividendReadPlatformServiceImpl(final RoutingDataSource dataSource,
-            final ColumnValidator columnValidator) {
+    public ShareProductDividendReadPlatformServiceImpl(final RoutingDataSource dataSource, final ColumnValidator columnValidator) {
         this.jdbcTemplate = new JdbcTemplate(dataSource);
         this.columnValidator = columnValidator;
     }
@@ -96,7 +95,7 @@ public class ShareProductDividendReadPlatformServiceImpl implements ShareProduct
 
         private final String sql;
 
-        public ShareProductDividendMapper() {
+        ShareProductDividendMapper() {
             StringBuilder sb = new StringBuilder();
             sb.append(" pod.id as id, pod.amount as amount,");
             sb.append(" pod.status as status, pod.dividend_period_start_date as startDate,");
@@ -116,7 +115,7 @@ public class ShareProductDividendReadPlatformServiceImpl implements ShareProduct
             final Long id = rs.getLong("id");
             final BigDecimal amount = rs.getBigDecimal("amount");
             final Integer status = JdbcSupport.getInteger(rs, "status");
-            final EnumOptionData statusEnum = SharesEnumerations.ShareProductDividendStatusEnum(status);
+            final EnumOptionData statusEnum = SharesEnumerations.shareProductDividendStatusEnum(status);
             final LocalDate startDate = JdbcSupport.getLocalDate(rs, "startDate");
             final LocalDate endDate = JdbcSupport.getLocalDate(rs, "endDate");
 

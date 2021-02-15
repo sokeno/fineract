@@ -18,6 +18,7 @@
  */
 package org.apache.fineract.infrastructure.campaigns.email.domain;
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -32,14 +33,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.fineract.infrastructure.campaigns.email.EmailApiConstants;
 import org.apache.fineract.infrastructure.core.api.JsonCommand;
 import org.apache.fineract.infrastructure.core.domain.AbstractPersistableCustom;
+import org.apache.fineract.infrastructure.core.service.DateUtils;
 import org.apache.fineract.organisation.staff.domain.Staff;
 import org.apache.fineract.portfolio.client.domain.Client;
 import org.apache.fineract.portfolio.group.domain.Group;
-import org.joda.time.LocalDate;
 
 @Entity
 @Table(name = "scheduled_email_messages_outbound")
-public class EmailMessage extends AbstractPersistableCustom<Long> {
+public class EmailMessage extends AbstractPersistableCustom {
 
     @ManyToOne
     @JoinColumn(name = "group_id", nullable = true)
@@ -79,23 +80,25 @@ public class EmailMessage extends AbstractPersistableCustom<Long> {
     @Column(name = "error_message")
     private String errorMessage;
 
-
-    public static EmailMessage pendingEmail(final Group group, final Client client, final Staff staff,final EmailCampaign emailCampaign, final String emailSubject, final String message,
-                                        final String emailAddress, final String campaignName) {
-        return new EmailMessage(group, client, staff,emailCampaign,EmailMessageStatusType.PENDING, emailSubject, message, emailAddress,campaignName);
+    public static EmailMessage pendingEmail(final Group group, final Client client, final Staff staff, final EmailCampaign emailCampaign,
+            final String emailSubject, final String message, final String emailAddress, final String campaignName) {
+        return new EmailMessage(group, client, staff, emailCampaign, EmailMessageStatusType.PENDING, emailSubject, message, emailAddress,
+                campaignName);
     }
 
-    public static EmailMessage instance(final Group group, final Client client, final Staff staff, final EmailCampaign emailCampaign, final EmailMessageStatusType statusType,
-                                      final String emailSubject, final String message, final String sourceAddress, final String emailAddress, final String campaignName) {
-        return new EmailMessage(group, client, staff,emailCampaign, statusType, emailSubject, message, emailAddress, campaignName);
+    public static EmailMessage instance(final Group group, final Client client, final Staff staff, final EmailCampaign emailCampaign,
+            final EmailMessageStatusType statusType, final String emailSubject, final String message, final String sourceAddress,
+            final String emailAddress, final String campaignName) {
+        return new EmailMessage(group, client, staff, emailCampaign, statusType, emailSubject, message, emailAddress, campaignName);
     }
 
     protected EmailMessage() {
         //
     }
 
-    private EmailMessage(final Group group, final Client client, final Staff staff, final EmailCampaign emailCampaign, final EmailMessageStatusType statusType,
-            final String emailSubject, final String message, final String emailAddress, final String campaignName) {
+    private EmailMessage(final Group group, final Client client, final Staff staff, final EmailCampaign emailCampaign,
+            final EmailMessageStatusType statusType, final String emailSubject, final String message, final String emailAddress,
+            final String campaignName) {
         this.group = group;
         this.client = client;
         this.staff = staff;
@@ -105,7 +108,8 @@ public class EmailMessage extends AbstractPersistableCustom<Long> {
         this.emailSubject = emailSubject;
         this.message = message;
         this.campaignName = campaignName;
-        this.submittedOnDate = LocalDate.now().toDate();
+        this.submittedOnDate = Date
+                .from(LocalDate.now(DateUtils.getDateTimeZoneOfTenant()).atStartOfDay(DateUtils.getDateTimeZoneOfTenant()).toInstant());
     }
 
     public Map<String, Object> update(final JsonCommand command) {
@@ -120,7 +124,6 @@ public class EmailMessage extends AbstractPersistableCustom<Long> {
 
         return actualChanges;
     }
-
 
     public Group getGroup() {
         return group;
@@ -138,15 +141,17 @@ public class EmailMessage extends AbstractPersistableCustom<Long> {
         return statusType;
     }
 
+    public String getEmailAddress() {
+        return this.emailAddress;
+    }
 
-    public String getEmailAddress() {return this.emailAddress;}
-
-    public String getEmailSubject() {return emailSubject; }
+    public String getEmailSubject() {
+        return emailSubject;
+    }
 
     public String getMessage() {
         return message;
     }
-
 
     public void setStatusType(final Integer statusType) {
         this.statusType = statusType;
@@ -160,10 +165,19 @@ public class EmailMessage extends AbstractPersistableCustom<Long> {
         return this.submittedOnDate;
     }
 
-    public EmailCampaign getEmailCampaign() {return this.emailCampaign;}
+    public EmailCampaign getEmailCampaign() {
+        return this.emailCampaign;
+    }
 
-    public void updateErrorMessage(final String errorMessage) {this.errorMessage = errorMessage;}
+    public void updateErrorMessage(final String errorMessage) {
+        this.errorMessage = errorMessage;
+    }
 
-    public boolean isPending(){ return EmailMessageStatusType.fromInt(this.statusType).isPending();}
-    public boolean isSent(){ return EmailMessageStatusType.fromInt(this.statusType).isSent();}
+    public boolean isPending() {
+        return EmailMessageStatusType.fromInt(this.statusType).isPending();
+    }
+
+    public boolean isSent() {
+        return EmailMessageStatusType.fromInt(this.statusType).isSent();
+    }
 }

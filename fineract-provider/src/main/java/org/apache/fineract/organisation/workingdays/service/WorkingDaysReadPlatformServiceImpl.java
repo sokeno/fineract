@@ -49,7 +49,7 @@ public class WorkingDaysReadPlatformServiceImpl implements WorkingDaysReadPlatfo
 
         private final String schema;
 
-        public WorkingDaysMapper() {
+        WorkingDaysMapper() {
             final StringBuilder sqlBuilder = new StringBuilder(100);
             sqlBuilder.append("w.id as id,w.recurrence as recurrence,w.repayment_rescheduling_enum as status_enum,");
             sqlBuilder.append("w.extend_term_daily_repayments as extendTermForDailyRepayments,");
@@ -78,15 +78,15 @@ public class WorkingDaysReadPlatformServiceImpl implements WorkingDaysReadPlatfo
 
     @Override
     public WorkingDaysData retrieve() {
-        //Check whether template is enabled or not?
+        // Check whether template is enabled or not?
         try {
             final WorkingDaysMapper rm = new WorkingDaysMapper();
             final String sql = " select " + rm.schema();
             WorkingDaysData data = this.jdbcTemplate.queryForObject(sql, rm, new Object[] {});
-            Collection<EnumOptionData> repaymentRescheduleOptions = repaymentRescheduleTypeOptions() ;
-            return new WorkingDaysData(data, repaymentRescheduleOptions) ;
+            Collection<EnumOptionData> repaymentRescheduleOptions = repaymentRescheduleTypeOptions();
+            return new WorkingDaysData(data, repaymentRescheduleOptions);
         } catch (final EmptyResultDataAccessException e) {
-            throw new WorkingDaysNotFoundException();
+            throw new WorkingDaysNotFoundException(e);
         }
     }
 
@@ -97,10 +97,9 @@ public class WorkingDaysReadPlatformServiceImpl implements WorkingDaysReadPlatfo
     }
 
     private Collection<EnumOptionData> repaymentRescheduleTypeOptions() {
-         return Arrays.asList(
-                 WorkingDaysEnumerations.repaymentRescheduleType(RepaymentRescheduleType.SAME_DAY),
-                 WorkingDaysEnumerations.repaymentRescheduleType(RepaymentRescheduleType.MOVE_TO_NEXT_WORKING_DAY),
-                 WorkingDaysEnumerations.repaymentRescheduleType(RepaymentRescheduleType.MOVE_TO_NEXT_REPAYMENT_MEETING_DAY),
-                 WorkingDaysEnumerations.repaymentRescheduleType(RepaymentRescheduleType.MOVE_TO_PREVIOUS_WORKING_DAY));
+        return Arrays.asList(WorkingDaysEnumerations.repaymentRescheduleType(RepaymentRescheduleType.SAME_DAY),
+                WorkingDaysEnumerations.repaymentRescheduleType(RepaymentRescheduleType.MOVE_TO_NEXT_WORKING_DAY),
+                WorkingDaysEnumerations.repaymentRescheduleType(RepaymentRescheduleType.MOVE_TO_NEXT_REPAYMENT_MEETING_DAY),
+                WorkingDaysEnumerations.repaymentRescheduleType(RepaymentRescheduleType.MOVE_TO_PREVIOUS_WORKING_DAY));
     }
 }

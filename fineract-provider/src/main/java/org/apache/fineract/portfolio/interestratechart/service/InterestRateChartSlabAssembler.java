@@ -43,8 +43,8 @@ import org.apache.fineract.infrastructure.core.data.ApiParameterError;
 import org.apache.fineract.infrastructure.core.data.DataValidatorBuilder;
 import org.apache.fineract.infrastructure.core.exception.PlatformApiDataValidationException;
 import org.apache.fineract.infrastructure.core.serialization.FromJsonHelper;
-import org.apache.fineract.portfolio.interestratechart.data.InterestRateChartRepositoryWrapper;
 import org.apache.fineract.portfolio.interestratechart.domain.InterestRateChart;
+import org.apache.fineract.portfolio.interestratechart.domain.InterestRateChartRepositoryWrapper;
 import org.apache.fineract.portfolio.interestratechart.domain.InterestRateChartSlab;
 import org.apache.fineract.portfolio.interestratechart.domain.InterestRateChartSlabFields;
 import org.apache.fineract.portfolio.interestratechart.exception.InterestRateChartSlabNotFoundException;
@@ -61,15 +61,15 @@ public class InterestRateChartSlabAssembler {
 
     @Autowired
     public InterestRateChartSlabAssembler(final FromJsonHelper fromApiJsonHelper,
-            final InterestRateChartRepositoryWrapper interestRateChartRepositoryWrapper, final InterestIncentiveAssembler incentiveAssembler) {
+            final InterestRateChartRepositoryWrapper interestRateChartRepositoryWrapper,
+            final InterestIncentiveAssembler incentiveAssembler) {
         this.fromApiJsonHelper = fromApiJsonHelper;
         this.interestRateChartRepositoryWrapper = interestRateChartRepositoryWrapper;
         this.incentiveAssembler = incentiveAssembler;
     }
 
     /**
-     * Assembles a new {@link InterestRateChartSlab} from JSON Slabs passed in
-     * request
+     * Assembles a new {@link InterestRateChartSlab} from JSON Slabs passed in request
      */
     public InterestRateChartSlab assembleFrom(final JsonCommand command) {
 
@@ -118,7 +118,9 @@ public class InterestRateChartSlabAssembler {
         final InterestRateChart chart = this.interestRateChartRepositoryWrapper.findOneWithNotFoundDetection(chartId);
         final InterestRateChartSlab interestRateChartSlab = chart.findChartSlab(chartSlabId);
 
-        if (interestRateChartSlab == null) throw new InterestRateChartSlabNotFoundException(chartSlabId, chartId);
+        if (interestRateChartSlab == null) {
+            throw new InterestRateChartSlabNotFoundException(chartSlabId, chartId);
+        }
 
         return interestRateChartSlab;
     }
@@ -143,6 +145,8 @@ public class InterestRateChartSlabAssembler {
     }
 
     private void throwExceptionIfValidationWarningsExist(final List<ApiParameterError> dataValidationErrors) {
-        if (!dataValidationErrors.isEmpty()) { throw new PlatformApiDataValidationException(dataValidationErrors); }
+        if (!dataValidationErrors.isEmpty()) {
+            throw new PlatformApiDataValidationException(dataValidationErrors);
+        }
     }
 }

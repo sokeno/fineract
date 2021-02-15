@@ -18,6 +18,9 @@
  */
 package org.apache.fineract.infrastructure.reportmailingjob.domain;
 
+import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -29,22 +32,20 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.UniqueConstraint;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.fineract.infrastructure.core.api.JsonCommand;
 import org.apache.fineract.infrastructure.core.domain.AbstractAuditableCustom;
+import org.apache.fineract.infrastructure.core.service.DateUtils;
 import org.apache.fineract.infrastructure.dataqueries.domain.Report;
 import org.apache.fineract.infrastructure.reportmailingjob.ReportMailingJobConstants;
 import org.apache.fineract.infrastructure.reportmailingjob.data.ReportMailingJobEmailAttachmentFileFormat;
 import org.apache.fineract.infrastructure.reportmailingjob.data.ReportMailingJobPreviousRunStatus;
 import org.apache.fineract.useradministration.domain.AppUser;
-import org.joda.time.DateTime;
-import org.joda.time.LocalDateTime;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 
 @Entity
 @Table(name = "m_report_mailing_job", uniqueConstraints = { @UniqueConstraint(columnNames = { "name" }, name = "unique_name") })
-public class ReportMailingJob extends AbstractAuditableCustom<AppUser, Long> {
+public class ReportMailingJob extends AbstractAuditableCustom {
+
     private static final long serialVersionUID = -2197602941230009227L;
 
     @Column(name = "name", nullable = false)
@@ -112,23 +113,23 @@ public class ReportMailingJob extends AbstractAuditableCustom<AppUser, Long> {
     /**
      * ReportMailingJob protected constructor
      **/
-    protected ReportMailingJob() { }
+    protected ReportMailingJob() {}
 
     /**
      * ReportMailingJob private constructor
      **/
-    private ReportMailingJob(final String name, final String description, final LocalDateTime startDateTime,
-            final String recurrence, final String emailRecipients, final String emailSubject,
-            final String emailMessage, final ReportMailingJobEmailAttachmentFileFormat emailAttachmentFileFormat,
-            final Report stretchyReport, final String stretchyReportParamMap, final LocalDateTime previousRunDateTime, final LocalDateTime nextRunDateTime,
-            final ReportMailingJobPreviousRunStatus previousRunStatus, final String previousRunErrorLog, final String previousRunErrorMessage,
-            final boolean isActive, final boolean isDeleted, final AppUser runAsUser) {
+    private ReportMailingJob(final String name, final String description, final LocalDateTime startDateTime, final String recurrence,
+            final String emailRecipients, final String emailSubject, final String emailMessage,
+            final ReportMailingJobEmailAttachmentFileFormat emailAttachmentFileFormat, final Report stretchyReport,
+            final String stretchyReportParamMap, final LocalDateTime previousRunDateTime, final LocalDateTime nextRunDateTime,
+            final ReportMailingJobPreviousRunStatus previousRunStatus, final String previousRunErrorLog,
+            final String previousRunErrorMessage, final boolean isActive, final boolean isDeleted, final AppUser runAsUser) {
         this.name = name;
         this.description = description;
         this.startDateTime = null;
 
         if (startDateTime != null) {
-            this.startDateTime = startDateTime.toDate();
+            this.startDateTime = Date.from(startDateTime.atZone(DateUtils.getDateTimeZoneOfTenant()).toInstant());
         }
 
         this.recurrence = recurrence;
@@ -141,13 +142,13 @@ public class ReportMailingJob extends AbstractAuditableCustom<AppUser, Long> {
         this.previousRunDateTime = null;
 
         if (previousRunDateTime != null) {
-            this.previousRunDateTime = previousRunDateTime.toDate();
+            this.previousRunDateTime = Date.from(previousRunDateTime.atZone(DateUtils.getDateTimeZoneOfTenant()).toInstant());
         }
 
         this.nextRunDateTime = null;
 
         if (nextRunDateTime != null) {
-            this.nextRunDateTime = nextRunDateTime.toDate();
+            this.nextRunDateTime = Date.from(nextRunDateTime.atZone(DateUtils.getDateTimeZoneOfTenant()).toInstant());
         }
 
         this.previousRunStatus = null;
@@ -172,12 +173,13 @@ public class ReportMailingJob extends AbstractAuditableCustom<AppUser, Long> {
      *
      * @return ReportMailingJob object
      **/
-    public static ReportMailingJob newInstance(final String name, final String description, final LocalDateTime startDateTime, final String recurrence,
-            final String emailRecipients, final String emailSubject, final String emailMessage,
-            final ReportMailingJobEmailAttachmentFileFormat emailAttachmentFileFormat, final Report stretchyReport, final String stretchyReportParamMap,
-            final boolean isActive, final AppUser runAsUser) {
-        return new ReportMailingJob(name, description, startDateTime, recurrence, emailRecipients, emailSubject,
-                emailMessage, emailAttachmentFileFormat, stretchyReport, stretchyReportParamMap, null, null, null, null, null, isActive, false, runAsUser);
+    public static ReportMailingJob newInstance(final String name, final String description, final LocalDateTime startDateTime,
+            final String recurrence, final String emailRecipients, final String emailSubject, final String emailMessage,
+            final ReportMailingJobEmailAttachmentFileFormat emailAttachmentFileFormat, final Report stretchyReport,
+            final String stretchyReportParamMap, final boolean isActive, final AppUser runAsUser) {
+        return new ReportMailingJob(name, description, startDateTime, recurrence, emailRecipients, emailSubject, emailMessage,
+                emailAttachmentFileFormat, stretchyReport, stretchyReportParamMap, null, null, null, null, null, isActive, false,
+                runAsUser);
     }
 
     /**
@@ -185,8 +187,7 @@ public class ReportMailingJob extends AbstractAuditableCustom<AppUser, Long> {
      *
      * @return ReportMailingJob object
      **/
-    public static ReportMailingJob newInstance(JsonCommand jsonCommand, final Report stretchyReport,
-            final AppUser runAsUser) {
+    public static ReportMailingJob newInstance(JsonCommand jsonCommand, final Report stretchyReport, final AppUser runAsUser) {
         final String name = jsonCommand.stringValueOfParameterNamed(ReportMailingJobConstants.NAME_PARAM_NAME);
         final String description = jsonCommand.stringValueOfParameterNamed(ReportMailingJobConstants.DESCRIPTION_PARAM_NAME);
         final String recurrence = jsonCommand.stringValueOfParameterNamed(ReportMailingJobConstants.RECURRENCE_PARAM_NAME);
@@ -194,28 +195,35 @@ public class ReportMailingJob extends AbstractAuditableCustom<AppUser, Long> {
         final String emailRecipients = jsonCommand.stringValueOfParameterNamed(ReportMailingJobConstants.EMAIL_RECIPIENTS_PARAM_NAME);
         final String emailSubject = jsonCommand.stringValueOfParameterNamed(ReportMailingJobConstants.EMAIL_SUBJECT_PARAM_NAME);
         final String emailMessage = jsonCommand.stringValueOfParameterNamed(ReportMailingJobConstants.EMAIL_MESSAGE_PARAM_NAME);
-        final String stretchyReportParamMap = jsonCommand.stringValueOfParameterNamed(ReportMailingJobConstants.STRETCHY_REPORT_PARAM_MAP_PARAM_NAME);
-        final Integer emailAttachmentFileFormatId = jsonCommand.integerValueOfParameterNamed(ReportMailingJobConstants.EMAIL_ATTACHMENT_FILE_FORMAT_ID_PARAM_NAME);
-        final ReportMailingJobEmailAttachmentFileFormat emailAttachmentFileFormat = ReportMailingJobEmailAttachmentFileFormat.newInstance(emailAttachmentFileFormatId);
-        LocalDateTime startDateTime = new LocalDateTime();
+        final String stretchyReportParamMap = jsonCommand
+                .stringValueOfParameterNamed(ReportMailingJobConstants.STRETCHY_REPORT_PARAM_MAP_PARAM_NAME);
+        final Integer emailAttachmentFileFormatId = jsonCommand
+                .integerValueOfParameterNamed(ReportMailingJobConstants.EMAIL_ATTACHMENT_FILE_FORMAT_ID_PARAM_NAME);
+        final ReportMailingJobEmailAttachmentFileFormat emailAttachmentFileFormat = ReportMailingJobEmailAttachmentFileFormat
+                .newInstance(emailAttachmentFileFormatId);
+        LocalDateTime startDateTime = LocalDateTime.now(DateUtils.getDateTimeZoneOfTenant());
 
         if (jsonCommand.hasParameter(ReportMailingJobConstants.START_DATE_TIME_PARAM_NAME)) {
-            final String startDateTimeString = jsonCommand.stringValueOfParameterNamed(ReportMailingJobConstants.START_DATE_TIME_PARAM_NAME);
+            final String startDateTimeString = jsonCommand
+                    .stringValueOfParameterNamed(ReportMailingJobConstants.START_DATE_TIME_PARAM_NAME);
 
             if (startDateTimeString != null) {
-                final DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern(jsonCommand.dateFormat()).withLocale(jsonCommand.extractLocale());
+                final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(jsonCommand.dateFormat())
+                        .withLocale(jsonCommand.extractLocale());
                 startDateTime = LocalDateTime.parse(startDateTimeString, dateTimeFormatter);
             }
         }
 
-        return new ReportMailingJob(name, description, startDateTime, recurrence, emailRecipients, emailSubject,
-                emailMessage, emailAttachmentFileFormat, stretchyReport, stretchyReportParamMap, null, startDateTime, null, null, null, isActive, false, runAsUser);
+        return new ReportMailingJob(name, description, startDateTime, recurrence, emailRecipients, emailSubject, emailMessage,
+                emailAttachmentFileFormat, stretchyReport, stretchyReportParamMap, null, startDateTime, null, null, null, isActive, false,
+                runAsUser);
     }
 
     /**
      * Update the ReportMailingJob entity
      *
-     * @param jsonCommand JsonCommand object
+     * @param jsonCommand
+     *            JsonCommand object
      * @return map of string to object
      **/
     public Map<String, Object> update(final JsonCommand jsonCommand) {
@@ -270,34 +278,43 @@ public class ReportMailingJob extends AbstractAuditableCustom<AppUser, Long> {
             this.emailMessage = emailMessage;
         }
 
-        if (jsonCommand.isChangeInStringParameterNamed(ReportMailingJobConstants.STRETCHY_REPORT_PARAM_MAP_PARAM_NAME, this.stretchyReportParamMap)) {
-            final String stretchyReportParamMap = jsonCommand.stringValueOfParameterNamed(ReportMailingJobConstants.STRETCHY_REPORT_PARAM_MAP_PARAM_NAME);
+        if (jsonCommand.isChangeInStringParameterNamed(ReportMailingJobConstants.STRETCHY_REPORT_PARAM_MAP_PARAM_NAME,
+                this.stretchyReportParamMap)) {
+            final String stretchyReportParamMap = jsonCommand
+                    .stringValueOfParameterNamed(ReportMailingJobConstants.STRETCHY_REPORT_PARAM_MAP_PARAM_NAME);
             actualChanges.put(ReportMailingJobConstants.STRETCHY_REPORT_PARAM_MAP_PARAM_NAME, stretchyReportParamMap);
 
             this.stretchyReportParamMap = stretchyReportParamMap;
         }
 
-        final ReportMailingJobEmailAttachmentFileFormat emailAttachmentFileFormat = ReportMailingJobEmailAttachmentFileFormat.newInstance(this.emailAttachmentFileFormat);
+        final ReportMailingJobEmailAttachmentFileFormat emailAttachmentFileFormat = ReportMailingJobEmailAttachmentFileFormat
+                .newInstance(this.emailAttachmentFileFormat);
 
-        if (jsonCommand.isChangeInIntegerParameterNamed(ReportMailingJobConstants.EMAIL_ATTACHMENT_FILE_FORMAT_ID_PARAM_NAME, emailAttachmentFileFormat.getId())) {
-            final Integer emailAttachmentFileFormatId = jsonCommand.integerValueOfParameterNamed(ReportMailingJobConstants.EMAIL_ATTACHMENT_FILE_FORMAT_ID_PARAM_NAME);
+        if (jsonCommand.isChangeInIntegerParameterNamed(ReportMailingJobConstants.EMAIL_ATTACHMENT_FILE_FORMAT_ID_PARAM_NAME,
+                emailAttachmentFileFormat.getId())) {
+            final Integer emailAttachmentFileFormatId = jsonCommand
+                    .integerValueOfParameterNamed(ReportMailingJobConstants.EMAIL_ATTACHMENT_FILE_FORMAT_ID_PARAM_NAME);
             actualChanges.put(ReportMailingJobConstants.EMAIL_ATTACHMENT_FILE_FORMAT_ID_PARAM_NAME, emailAttachmentFileFormatId);
 
-            final ReportMailingJobEmailAttachmentFileFormat newEmailAttachmentFileFormat = ReportMailingJobEmailAttachmentFileFormat.newInstance(emailAttachmentFileFormatId);
+            final ReportMailingJobEmailAttachmentFileFormat newEmailAttachmentFileFormat = ReportMailingJobEmailAttachmentFileFormat
+                    .newInstance(emailAttachmentFileFormatId);
             this.emailAttachmentFileFormat = newEmailAttachmentFileFormat.getValue();
         }
 
         final String newStartDateTimeString = jsonCommand.stringValueOfParameterNamed(ReportMailingJobConstants.START_DATE_TIME_PARAM_NAME);
 
         if (!StringUtils.isEmpty(newStartDateTimeString)) {
-            final DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern(jsonCommand.dateFormat()).withLocale(jsonCommand.extractLocale());
+            final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(jsonCommand.dateFormat())
+                    .withLocale(jsonCommand.extractLocale());
             final LocalDateTime newStartDateTime = LocalDateTime.parse(newStartDateTimeString, dateTimeFormatter);
-            final LocalDateTime oldStartDateTime = (this.startDateTime != null) ? new LocalDateTime(this.startDateTime) : null;
+            final LocalDateTime oldStartDateTime = (this.startDateTime != null)
+                    ? ZonedDateTime.ofInstant(this.startDateTime.toInstant(), DateUtils.getDateTimeZoneOfTenant()).toLocalDateTime()
+                    : null;
 
             if ((oldStartDateTime != null) && !newStartDateTime.equals(oldStartDateTime)) {
                 actualChanges.put(ReportMailingJobConstants.START_DATE_TIME_PARAM_NAME, newStartDateTimeString);
 
-                this.startDateTime = newStartDateTime.toDate();
+                this.startDateTime = Date.from(newStartDateTime.atZone(DateUtils.getDateTimeZoneOfTenant()).toInstant());
             }
         }
 
@@ -308,8 +325,8 @@ public class ReportMailingJob extends AbstractAuditableCustom<AppUser, Long> {
         }
 
         if (jsonCommand.isChangeInLongParameterNamed(ReportMailingJobConstants.STRETCHY_REPORT_ID_PARAM_NAME, currentStretchyReportId)) {
-            final Long updatedStretchyReportId = jsonCommand.longValueOfParameterNamed(
-                    ReportMailingJobConstants.STRETCHY_REPORT_ID_PARAM_NAME);
+            final Long updatedStretchyReportId = jsonCommand
+                    .longValueOfParameterNamed(ReportMailingJobConstants.STRETCHY_REPORT_ID_PARAM_NAME);
             actualChanges.put(ReportMailingJobConstants.STRETCHY_REPORT_ID_PARAM_NAME, updatedStretchyReportId);
         }
 
@@ -319,7 +336,8 @@ public class ReportMailingJob extends AbstractAuditableCustom<AppUser, Long> {
     /**
      * update the stretchy report entity associated with the credit check
      *
-     * @param stretchyReport -- Report entity
+     * @param stretchyReport
+     *            -- Report entity
      *
      **/
     public void update(final Report stretchyReport) {
@@ -356,8 +374,9 @@ public class ReportMailingJob extends AbstractAuditableCustom<AppUser, Long> {
     /**
      * @return the value of the startDateTime property
      **/
-    public DateTime getStartDateTime() {
-        return (this.startDateTime != null) ? new DateTime(this.startDateTime) : null;
+    public ZonedDateTime getStartDateTime() {
+        return (this.startDateTime != null) ? ZonedDateTime.ofInstant(this.startDateTime.toInstant(), DateUtils.getDateTimeZoneOfTenant())
+                : null;
     }
 
     /**
@@ -440,15 +459,19 @@ public class ReportMailingJob extends AbstractAuditableCustom<AppUser, Long> {
     /**
      * @return the previousRunDateTime
      */
-    public DateTime getPreviousRunDateTime() {
-        return (this.previousRunDateTime != null) ? new DateTime(this.previousRunDateTime) : null;
+    public ZonedDateTime getPreviousRunDateTime() {
+        return (this.previousRunDateTime != null)
+                ? ZonedDateTime.ofInstant(this.previousRunDateTime.toInstant(), DateUtils.getDateTimeZoneOfTenant())
+                : null;
     }
 
     /**
      * @return the nextRunDateTime
      */
-    public DateTime getNextRunDateTime() {
-        return (this.nextRunDateTime != null) ? new DateTime(this.nextRunDateTime) : null;
+    public ZonedDateTime getNextRunDateTime() {
+        return (this.nextRunDateTime != null)
+                ? ZonedDateTime.ofInstant(this.nextRunDateTime.toInstant(), DateUtils.getDateTimeZoneOfTenant())
+                : null;
     }
 
     /**
@@ -498,7 +521,8 @@ public class ReportMailingJob extends AbstractAuditableCustom<AppUser, Long> {
     /**
      * update the previousRunStatus
      *
-     * @param previousRunStatus -- the status of the previous job execution
+     * @param previousRunStatus
+     *            -- the status of the previous job execution
      *
      **/
     public void updatePreviousRunStatus(final String previousRunStatus) {
@@ -510,24 +534,26 @@ public class ReportMailingJob extends AbstractAuditableCustom<AppUser, Long> {
     /**
      * update the previousRunDateTime
      *
-     * @param previousRunDateTime -- previous run date
+     * @param previousRunDateTime
+     *            -- previous run date
      *
      **/
-    public void updatePreviousRunDateTime(final DateTime previousRunDateTime) {
+    public void updatePreviousRunDateTime(final ZonedDateTime previousRunDateTime) {
         if (previousRunDateTime != null) {
-            this.previousRunDateTime = previousRunDateTime.toDate();
+            this.previousRunDateTime = Date.from(previousRunDateTime.toInstant());
         }
     }
 
     /**
      * update the nextRunDateTime
      *
-     * @param nextRunDateTime -- the next run DateTime
+     * @param nextRunDateTime
+     *            -- the next run DateTime
      *
      **/
-    public void updateNextRunDateTime(final DateTime nextRunDateTime) {
+    public void updateNextRunDateTime(final ZonedDateTime nextRunDateTime) {
         if (nextRunDateTime != null) {
-            this.nextRunDateTime = nextRunDateTime.toDate();
+            this.nextRunDateTime = Date.from(nextRunDateTime.toInstant());
         }
 
         else {
@@ -547,7 +573,8 @@ public class ReportMailingJob extends AbstractAuditableCustom<AppUser, Long> {
     /**
      * update the previousRunErrorLog property
      *
-     * @param previousRunErrorLog -- the previous job run error log
+     * @param previousRunErrorLog
+     *            -- the previous job run error log
      *
      **/
     public void updatePreviousRunErrorLog(final String previousRunErrorLog) {

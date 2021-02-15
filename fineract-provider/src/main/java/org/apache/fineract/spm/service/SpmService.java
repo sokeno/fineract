@@ -18,6 +18,10 @@
  */
 package org.apache.fineract.spm.service;
 
+import java.time.LocalDate;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoField;
+import java.time.temporal.ChronoUnit;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -26,12 +30,10 @@ import org.apache.fineract.infrastructure.core.exception.PlatformDataIntegrityEx
 import org.apache.fineract.infrastructure.core.service.DateUtils;
 import org.apache.fineract.infrastructure.security.service.PlatformSecurityContext;
 import org.apache.fineract.spm.domain.Survey;
+import org.apache.fineract.spm.domain.SurveyRepository;
 import org.apache.fineract.spm.domain.SurveyValidator;
 import org.apache.fineract.spm.exception.SurveyNotFoundException;
-import org.apache.fineract.spm.repository.SurveyRepository;
 import org.apache.openjpa.persistence.EntityExistsException;
-import org.joda.time.DateTime;
-import org.joda.time.LocalDate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.orm.jpa.JpaSystemException;
@@ -45,10 +47,9 @@ public class SpmService {
     private final SurveyValidator surveyValidator;
 
     @Autowired
-    public SpmService(final PlatformSecurityContext securityContext,
-                      final SurveyRepository surveyRepository,
-                      final SurveyValidator surveyValidator) {
-        super();
+    public SpmService(final PlatformSecurityContext securityContext, final SurveyRepository surveyRepository,
+            final SurveyValidator surveyValidator) {
+
         this.securityContext = securityContext;
         this.surveyRepository = surveyRepository;
         this.surveyValidator = surveyValidator;
@@ -80,12 +81,12 @@ public class SpmService {
             this.deactivateSurvey(previousSurvey.getId());
         }
         // set valid from to start of today
-        LocalDate validFrom = DateUtils.getLocalDateOfTenant() ;
+        LocalDate validFrom = DateUtils.getLocalDateOfTenant();
         // set valid to for 100 years
-        Calendar cal = Calendar.getInstance() ;
-        cal.setTime(validFrom.toDate());
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(Date.from(validFrom.atStartOfDay(DateUtils.getDateTimeZoneOfTenant()).toInstant()));
         cal.add(Calendar.YEAR, 100);
-        survey.setValidFrom(validFrom.toDate());
+        survey.setValidFrom(Date.from(validFrom.atStartOfDay(DateUtils.getDateTimeZoneOfTenant()).toInstant()));
         survey.setValidTo(cal.getTime());
         try {
             this.surveyRepository.saveAndFlush(survey);
@@ -98,7 +99,7 @@ public class SpmService {
         } catch (final PersistenceException dve) {
             handleDataIntegrityIssues(dve, dve, survey.getKey());
         }
-        return survey ;
+        return survey;
     }
 
     public Survey updateSurvey(final Survey survey) {
@@ -121,8 +122,8 @@ public class SpmService {
         this.securityContext.authenticatedUser();
 
         final Survey survey = findById(id);
-        final DateTime dateTime = getStartOfToday().minusMillis(1);
-        survey.setValidTo(dateTime.toDate());
+        final ZonedDateTime dateTime = getStartOfToday().minus(1, ChronoUnit.MILLIS);
+        survey.setValidTo(Date.from(dateTime.toInstant()));
 
         this.surveyRepository.save(survey);
     }
@@ -131,29 +132,31 @@ public class SpmService {
         this.securityContext.authenticatedUser();
 
         final Survey survey = findById(id);
-        LocalDate validFrom = DateUtils.getLocalDateOfTenant() ;
-        Calendar cal = Calendar.getInstance() ;
-        cal.setTime(validFrom.toDate());
+        LocalDate validFrom = DateUtils.getLocalDateOfTenant();
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(Date.from(validFrom.atStartOfDay(DateUtils.getDateTimeZoneOfTenant()).toInstant()));
         cal.add(Calendar.YEAR, 100);
-        survey.setValidFrom(validFrom.toDate());
+        survey.setValidFrom(Date.from(validFrom.atStartOfDay(DateUtils.getDateTimeZoneOfTenant()).toInstant()));
         survey.setValidTo(cal.getTime());
 
         this.surveyRepository.save(survey);
     }
 
-
-    public static DateTime getStartOfToday() {
-        return DateTime.now().withHourOfDay(0).withMinuteOfHour(0).withSecondOfMinute(0).withMillisOfSecond(0);
+    public static ZonedDateTime getStartOfToday() {
+        return ZonedDateTime.now(DateUtils.getDateTimeZoneOfTenant()).withHour(0).withMinute(0).withSecond(0)
+                .with(ChronoField.MILLI_OF_SECOND, 0);
     }
 
     private void handleDataIntegrityIssues(final Throwable realCause, final Exception dve, String key) {
 
-        if (realCause.getMessage().contains("m_survey_scorecards")) { throw new PlatformDataIntegrityException(
-                "error.msg.survey.cannot.be.modified.as.used.in.client.survey",
-                "Survey can not be edited as it is already used in client survey", "name", key); }
+        if (realCause.getMessage().contains("m_survey_scorecards")) {
+            throw new PlatformDataIntegrityException("error.msg.survey.cannot.be.modified.as.used.in.client.survey",
+                    "Survey can not be edited as it is already used in client survey", "name", key);
+        }
 
-        if (realCause.getMessage().contains("key")) { throw new PlatformDataIntegrityException("error.msg.survey.duplicate.key",
-                "Survey with key already exists", "name", key); }
+        if (realCause.getMessage().contains("key")) {
+            throw new PlatformDataIntegrityException("error.msg.survey.duplicate.key", "Survey with key already exists", "name", key);
+        }
 
         throw new PlatformDataIntegrityException("error.msg.survey.unknown.data.integrity.issue",
                 "Unknown data integrity issue with resource: " + realCause.getMessage());
